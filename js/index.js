@@ -42,7 +42,8 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
                                                 results:[],
                                                 resultStream:phloem.stream()});
                                      $('#player_name').select();
-                                   }})))}),
+                                   }})),
+                  f.p(f.button('Pair for Round 1', {'class':'btn'})))}),
     f.div('#backdrop'),
     f.div('#players',
           f.div('#players_header',
