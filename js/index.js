@@ -39,6 +39,7 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
     var tableCount = 1;
     return f.div('#matchboard', _.map(matches, function(match) {
       return f.div('#table' + tableCount++, {'class':'playtable'},
+                   f.div({'class':'matchTableSurface'}),
                    f.p(match[0].name, {'class':'playerName'}),
                    f.p(match[1] ? match[1].name : '-- Bye --', {'class':'player2 playerName'}))}));}
 
