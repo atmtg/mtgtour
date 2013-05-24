@@ -1,7 +1,11 @@
 define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function(f, b, phloem, _, on) {
 
+  var matches = [];
   var players = [];
+  var matchStream = phloem.stream();
   var playerStream = phloem.stream();
+
+  matchStream.push(matches);
   playerStream.push(players);
 
   function addPlayer(player) {
@@ -31,6 +35,21 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
     return winsAndTotal.total == 0 ? 0 : ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
   };
 
+  function createMatchTables(matches) {
+    var tableCount = 1;
+    return f.div('#matchboard', _.map(matches, function(match) {
+      return f.div('#table' + tableCount++, {'class':'playtable'},
+                   f.p(match[0].name, {'class':'playerName'}),
+                   f.p(match[1] ? match[1].name : '-- Bye --', {'class':'player2 playerName'}))}));}
+
+  function pairForRoundOne(players) {
+    var firstHalf = players.slice(0,Math.ceil(players.length/2));
+    var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
+    var pairing = _.zip(firstHalf, secondHalf);
+    matches = pairing;
+    matchStream.push(matches);
+  }
+  
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
@@ -43,8 +62,14 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
                                                 resultStream:phloem.stream()});
                                      $('#player_name').select();
                                    }})),
-                  f.p(f.button('Pair for Round 1', {'class':'btn'})))}),
+                  f.p(f.button('Pair for Round 1', {'class':'btn'},
+                              on.click(function(){
+                                $('#newplayer').hide();
+                                pairForRoundOne(players)  
+                              }))))}),
     f.div('#backdrop'),
+    b.bind(matchStream.read,
+           function(matches) {return createMatchTables(matches)}),
     f.div('#players',
           f.div('#players_header',
                 f.span('Player', {'class':'span2'}), 
