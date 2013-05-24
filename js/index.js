@@ -33,7 +33,7 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
 
   return f.div(
     b.bus(function(bus) {
-            return f.div('#newplayer',
+      return f.div('#newplayer',
                          f.input('#player_name', {'type': 'text', 
                                                   'placeholder':'Player name'}, bus.expose,
                                  on.keypress(function(event) {
@@ -43,6 +43,7 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
                                                 resultStream:phloem.stream()});
                                      $('#player_name').select();
                                    }})))}),
+    f.div('#backdrop'),
     f.div('#players',
           f.div('#players_header',
                 f.span('Player', {'class':'span2'}), 
