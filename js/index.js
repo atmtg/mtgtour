@@ -10,8 +10,10 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
   };
 
   function matchPoints(results) {
-    return _.reduce(results, function(acc, val) {return acc + (val.win * 3) + val.draw}, 0);
-  };
+    return _.reduce(results, function(acc, val) {
+      if(val.wins > val.loss) return acc + 3;
+      if(val.wins == val.loss) return acc + 1;
+      return acc}, 0)};
 
   return f.div(
     b.bus(function(bus) {
@@ -27,7 +29,7 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
     f.div('#players',
           f.div('#players_header',
                 f.span('Player', {'class':'span2'}), 
-                f.span('Match points')),
+                f.span('Points')),
           b.bind(playerStream.read,
                  function(players) {
                    return f.span(_.map(players, function(player) {
@@ -35,13 +37,21 @@ define(['foliage', 'bud', 'phloem', 'lodash', 'foliage/foliage-event'], function
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(matchPoints(results));
-                                                }
-                                                )),
-                                  f.button('add win', on.click(function(){
-                                    player.results = player.results.concat([{win:1, draw:0}]);
+                                                })),
+                                  f.button('2-0', on.click(function(){
+                                    player.results = player.results.concat([{wins:2, loss:0}]);
                                     player.resultStream.push(player.results)})),
-                                  f.button('add draw', on.click(function(){
-                                    player.results = player.results.concat([{win:0, draw:1}]);
+                                  f.button('2-1', on.click(function(){
+                                    player.results = player.results.concat([{wins:2, loss:1}]);
+                                    player.resultStream.push(player.results)})),
+                                  f.button('1-1', on.click(function(){
+                                    player.results = player.results.concat([{wins:1, loss:1}]);
+                                    player.resultStream.push(player.results)})),
+                                  f.button('1-2', on.click(function(){
+                                    player.results = player.results.concat([{wins:1, loss:2}]);
+                                    player.resultStream.push(player.results)})),
+                                  f.button('0-2', on.click(function(){
+                                    player.results = player.results.concat([{wins:0, loss:2}]);
                                     player.resultStream.push(player.results)}))
                                  )}))})
          ))})
