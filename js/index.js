@@ -57,10 +57,13 @@ define(['foliage',
       var player1 = match[0];
       var player2 = match[1];
       return f.div('#table' + tableCount++, {'class':'matchtable'},
+                   on.click(function(){
+                     $(this).find('.buttonPanel').fadeToggle();
+                   }),
                    f.div({'class':'matchTableSurface'}),
                    f.p(player1.name, {'class':'playerName'}),
                    f.p(player2 ? player2.name : '-- Bye --', {'class':'player2 playerName'}),
-                   f.div({'class':'buttonPanel'},
+                   f.div({'class':'buttonPanel', 'style':'display:none'},
                          f.button('2-0', {'class':'btn'}, on.click(function(){
                            registerMatchResult(player1, player2, 2, 0);})),
                          f.button('2-1', {'class':'btn'}, on.click(function(){
@@ -95,7 +98,7 @@ define(['foliage',
                                    }})),
                   f.p(f.button('Pair for Round 1', {'class':'btn'},
                               on.click(function(){
-                                $('#newplayer').hide();
+                                $('#newplayer').fadeOut();
                                 pairForRoundOne(players)  
                               }))))}),
     f.div('#backdrop'),
