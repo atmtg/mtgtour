@@ -45,7 +45,9 @@ define(['foliage',
     return winsAndTotal.total == 0 ? 0 : ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
   };
          
-  function registerMatchResult(player1, player2, player1Games, player2Games, reportStream) {
+  function registerMatchResult(player1, player2, player1Games, player2Games, match) {
+    match.result = [{games1:player1Games, games2:player2Games}];
+          
     player1.results = player1.results.concat([{wins:player1Games, loss:player2Games}]);
     player1.resultStream.push(player1.results)
     if(player2) {
@@ -53,13 +55,13 @@ define(['foliage',
       player2.resultStream.push(player2.results)
       
       if(player1Games == player2Games) 
-        reportStream.push('Draw');
+        match.reportStream.push('Draw');
       if(player1Games > player2Games) 
-        reportStream.push(player1.name + ' wins <br>' + player1Games + ' - ' + player2Games);
+        match.reportStream.push(player1.name + ' wins <br>' + player1Games + ' - ' + player2Games);
       if(player2Games > player1Games)
-        reportStream.push(player2.name + ' wins <br>' + player2Games + ' - ' + player1Games);
+        match.reportStream.push(player2.name + ' wins <br>' + player2Games + ' - ' + player1Games);
     } else {
-      reportStream.push(player1.name + ' receives a bye');
+      match.reportStream.push(player1.name + ' receives a bye');
     }
   };
 
@@ -67,21 +69,26 @@ define(['foliage',
     var start = new Date().getTime();
     window.setInterval(function() {
       var elapsed = new Date().getTime() - start;
-      var timeLeft = 20 - Math.floor(elapsed/1000);
+      var timeLeft = 3600 - Math.floor(elapsed/1000);
       
-      roundReportStream.push(timeLeft)
+      var allMatchesFinished = true;
+      _.map(matches, function(match) {
+        allMatchesFinished &= (match.result.length > 0);
+      })
+
+      roundReportStream.push({time:timeLeft, roundFinished:allMatchesFinished})
     }, 1000);
   }
 
-  function roundReportPanel(roundTime) {
-    if(typeof roundTime == 'undefined') return f.div();
+  function roundReportPanel(roundReport) {
+    if(typeof roundReport == 'undefined') return f.div();
 
-    var minutes = Math.floor(roundTime/60);
-    var seconds = roundTime%60 < 10 ? '0' + roundTime%60 : roundTime%60;
+    var minutes = Math.floor(roundReport.time/60);
+    var seconds = roundReport.time%60 < 10 ? '0' + roundReport.time%60 : roundReport.time%60;
       
     return f.div('#roundPanel', 
-                 f.span(roundTime <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                        {'class': roundTime <= 0 ? 'roundTimer timerEnded' : 'roundTimer'}));
+                 f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                        {'class': roundReport.time <= 0 ? 'roundTimer timerEnded' : 'roundTimer'}));
   }
 
   function buttonToStartRound(matches) {
@@ -94,11 +101,16 @@ define(['foliage',
                })) : f.div();
   };
 
+  function buttonToFinishRoundAndPairNext() {
+    return f.button('Finish round and pair for next',
+                    {'class':'btn roundButton'})
+  }
+
   function opponentName(player1, player2, match) {
     if(player2)
       return player2.name;
     else {
-      registerMatchResult(player1, player2, 2, 0, match.reportStream);
+      registerMatchResult(player1, player2, 2, 0, match);
       return '- Bye -';
     }
   };
@@ -125,15 +137,15 @@ define(['foliage',
                    }),
                    f.div({'class':'buttonPanel', 'style':'display:none'},
                          f.button('2-0', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 2, 0, match.reportStream);})),
+                           registerMatchResult(player1, player2, 2, 0, match);})),
                          f.button('2-1', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 2, 1, match.reportStream);})),
+                           registerMatchResult(player1, player2, 2, 1, match);})),
                          f.button('1-1', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 1, 1, match.reportStream);})),
+                           registerMatchResult(player1, player2, 1, 1, match);})),
                          f.button('1-2', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 1, 2, match.reportStream);})),
+                           registerMatchResult(player1, player2, 1, 2, match);})),
                          f.button('0-2', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 0, 2, match.reportStream);}))
+                           registerMatchResult(player1, player2, 0, 2, match);}))
                         ))})
                 )};
 
@@ -142,7 +154,7 @@ define(['foliage',
     var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
     var pairings = _.zip(firstHalf, secondHalf);
     matches = _.map(pairings, function(pairing) {
-      return {player1:pairing[0], player2:pairing[1], reportStream:phloem.stream()};
+      return {player1:pairing[0], player2:pairing[1], reportStream:phloem.stream(), result:[]};
     });
     matchStream.push(matches);
   }
@@ -173,8 +185,13 @@ define(['foliage',
              return buttonToStartRound(matches);
            }),
     b.bind(roundReportStream.read,
-          function(roundTime) {
-            return roundReportPanel(roundTime);
+          function(roundReport) {
+            return roundReportPanel(roundReport);
+          }),
+    b.bind(roundReportStream.read,
+          function(roundReport) {
+            return roundReport && roundReport.roundFinished ? 
+              buttonToFinishRoundAndPairNext() : f.div();
           }),
     f.div('#players',
           f.div('#players_header',
