@@ -14,6 +14,8 @@ define(['foliage',
   var matchStream = phloem.stream();
   var playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
+  var roundTimerId;
+  var roundNumber = 1;
 
   matchStream.push(matches);
   playerStream.push(players);
@@ -48,12 +50,7 @@ define(['foliage',
   function registerMatchResult(player1, player2, player1Games, player2Games, match) {
     match.result = [{games1:player1Games, games2:player2Games}];
           
-    player1.results = player1.results.concat([{wins:player1Games, loss:player2Games}]);
-    player1.resultStream.push(player1.results)
     if(player2) {
-      player2.results = player2.results.concat([{wins:player2Games, loss:player1Games}]);
-      player2.resultStream.push(player2.results)
-      
       if(player1Games == player2Games) 
         match.reportStream.push('Draw');
       if(player1Games > player2Games) 
@@ -67,7 +64,7 @@ define(['foliage',
 
   function handleRound(matches) {
     var start = new Date().getTime();
-    window.setInterval(function() {
+    roundTimerId = window.setInterval(function() {
       var elapsed = new Date().getTime() - start;
       var timeLeft = 3600 - Math.floor(elapsed/1000);
       
@@ -87,23 +84,29 @@ define(['foliage',
     var seconds = roundReport.time%60 < 10 ? '0' + roundReport.time%60 : roundReport.time%60;
       
     return f.div('#roundPanel', 
-                 f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                        {'class': roundReport.time <= 0 ? 'roundTimer timerEnded' : 'roundTimer'}));
+                 f.div('#roundTimer', f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                                             {'class': roundReport.time <= 0 ? 'timerEnded' : ''})));
   }
 
   function buttonToStartRound(matches) {
-    return _.size(matches) > 0 ? 
+    return _.size(matches) > 0 ? f.div(
+      f.div('#roundTitle', f.span('Round ' + roundNumber)),
       f.button('Start round', 
                {'class':'btn roundButton'},
                on.click(function(){
                  handleRound(matches);
                  $(this).fadeOut();
-               })) : f.div();
+               }))) : f.div();
   };
 
-  function buttonToFinishRoundAndPairNext() {
-    return f.button('Finish round and pair for next',
-                    {'class':'btn roundButton'})
+  function buttonToFinishRoundAndPairNext(roundReport) {
+    return roundReport && roundReport.roundFinished ?  
+      f.button('Finish round and pair for next',
+               {'class':'btn roundButton'},
+               on.click(function() {
+                 window.clearInterval(roundTimerId);
+                 reportResultsAndPairForNextRound(matches, players);
+               })) : f.div();
   }
 
   function opponentName(player1, player2, match) {
@@ -157,8 +160,75 @@ define(['foliage',
       return {player1:pairing[0], player2:pairing[1], reportStream:phloem.stream(), result:[]};
     });
     matchStream.push(matches);
-  }
-  
+  };
+
+  function shuffle(array) {
+    var len = array.length;
+    var i = len;
+    while (i--) {
+      var p = parseInt(Math.random()*len);
+      var t = array[i];
+      array[i] = array[p];
+      array[p] = t;
+    }
+    return array;
+  };
+
+  function maxPoints(array) {
+    var max = -1, maxIndex = -1;
+    for(var i = 0; i<array.length; i++) {
+      if(parseInt(array[i].points, 10) > max) {
+        max = array[i].points;
+        maxIndex = i;
+      }
+    }
+    return maxIndex;
+  };
+
+  function pairForConsecutiveRound(players) {
+    players = shuffle(players);
+
+    var playersAndPoints = [];
+    _.map(players, function(player) {
+      playersAndPoints = 
+        playersAndPoints.concat([{thePlayer:player, 
+                                  points:matchPoints(player.results)}]);
+    });
+    
+    matches = [];
+    while(playersAndPoints.length > 0) {
+      var indexOfPlayer1 = maxPoints(playersAndPoints);
+      var ply1 = playersAndPoints[indexOfPlayer1].thePlayer, ply2 = undefined;
+      playersAndPoints.splice(indexOfPlayer1, 1);
+      if(playersAndPoints.length > 0) {
+        var indexOfPlayer2 = maxPoints(playersAndPoints);
+        var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
+        playersAndPoints.splice(indexOfPlayer2, 1);
+      }
+      matches = matches.concat([{player1:ply1, 
+                                 player2:ply2, 
+                                 reportStream:phloem.stream(), 
+                                 result:[]}]);
+    };
+    matchStream.push(matches);
+  };
+
+  function reportResultsAndPairForNextRound(matches, players) {
+    _.map(matches, function(match) {
+      var player1Games = match.result[0].games1;
+      var player2Games = match.result[0].games2;
+
+      match.player1.results = match.player1.results.concat([{wins:player1Games, loss:player2Games}]);
+      match.player1.resultStream.push(match.player1.results)
+      if(match.player2) {
+        match.player2.results = match.player2.results.concat([{wins:player2Games, loss:player1Games}]);
+        match.player2.resultStream.push(match.player2.results)
+      }
+    });
+    roundNumber++;
+    pairForConsecutiveRound(players);
+  };
+
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
@@ -190,8 +260,7 @@ define(['foliage',
           }),
     b.bind(roundReportStream.read,
           function(roundReport) {
-            return roundReport && roundReport.roundFinished ? 
-              buttonToFinishRoundAndPairNext() : f.div();
+            return buttonToFinishRoundAndPairNext(roundReport);
           }),
     f.div('#players',
           f.div('#players_header',
