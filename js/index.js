@@ -13,6 +13,7 @@ define(['foliage',
   var players = [];
   var matchStream = phloem.stream();
   var playerStream = phloem.stream();
+  var roundReportStream = phloem.stream();
 
   matchStream.push(matches);
   playerStream.push(players);
@@ -62,6 +63,37 @@ define(['foliage',
     }
   };
 
+  function handleRound(matches) {
+    var start = new Date().getTime();
+    window.setInterval(function() {
+      var elapsed = new Date().getTime() - start;
+      var timeLeft = 20 - Math.floor(elapsed/1000);
+      
+      roundReportStream.push(timeLeft)
+    }, 1000);
+  }
+
+  function roundReportPanel(roundTime) {
+    if(typeof roundTime == 'undefined') return f.div();
+
+    var minutes = Math.floor(roundTime/60);
+    var seconds = roundTime%60 < 10 ? '0' + roundTime%60 : roundTime%60;
+      
+    return f.div('#roundPanel', 
+                 f.span(roundTime <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                        {'class': roundTime <= 0 ? 'roundTimer timerEnded' : 'roundTimer'}));
+  }
+
+  function buttonToStartRound(matches) {
+    return _.size(matches) > 0 ? 
+      f.button('Start round', 
+               {'class':'btn roundButton'},
+               on.click(function(){
+                 handleRound(matches);
+                 $(this).fadeOut();
+               })) : f.div();
+  };
+
   function opponentName(player1, player2, match) {
     if(player2)
       return player2.name;
@@ -69,13 +101,15 @@ define(['foliage',
       registerMatchResult(player1, player2, 2, 0, match.reportStream);
       return '- Bye -';
     }
-  }
+  };
 
   function createMatchTables(matches) {
     var tableCount = 1;
+
     return f.div('#matchboard', _.map(matches, function(match) {
       var player1 = match.player1;
       var player2 = match.player2;
+
       return f.div('#table' + tableCount++, {'class':'matchtable'},
                    on.click(function(){
                      if(player2) {
@@ -100,7 +134,8 @@ define(['foliage',
                            registerMatchResult(player1, player2, 1, 2, match.reportStream);})),
                          f.button('0-2', {'class':'btn'}, on.click(function(){
                            registerMatchResult(player1, player2, 0, 2, match.reportStream);}))
-                        ))}))};
+                        ))})
+                )};
 
   function pairForRoundOne(players) {
     var firstHalf = players.slice(0,Math.ceil(players.length/2));
@@ -131,7 +166,16 @@ define(['foliage',
                               }))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
-           function(matches) {return createMatchTables(matches)}),
+           function(matches) {
+             return createMatchTables(matches)}),
+    b.bind(matchStream.read,
+           function(matches) {
+             return buttonToStartRound(matches);
+           }),
+    b.bind(roundReportStream.read,
+          function(roundTime) {
+            return roundReportPanel(roundTime);
+          }),
     f.div('#players',
           f.div('#players_header',
                 f.span('Player', {'class':'span2'}), 
