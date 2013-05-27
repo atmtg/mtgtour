@@ -47,6 +47,35 @@ define(['foliage',
     return winsAndTotal.total == 0 ? 0 : ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
   };
          
+  function opponentsMatchWinPercentage(results) {
+    var numOpponents = 0;
+    var accumulatedMatchWinPercentage = 0;
+    _.each(results, function(result) {
+      if(result.opponent) {
+        accumulatedMatchWinPercentage = matchWinPercentage(result.opponent.results);
+        numOpponents++;
+      };
+    });
+
+    return numOpponents == 0 ? 0 : 
+      (accumulatedMatchWinPercentage / numOpponents).toFixed(2);
+  };
+
+  function opponentsGameWinPercentage(results) {
+    var numOpponents = 0;
+    var accumulatedGameWinPercentage = 0;
+    _.each(results, function(result) {
+      if(result.opponent) {
+        accumulatedGameWinPercentage = 
+          Math.max(gameWinPercentage(result.opponent.results), 33.00);
+        numOpponents++;
+      };
+    });
+
+    return numOpponents == 0 ? 0 :
+      (accumulatedGameWinPercentage / numOpponents).toFixed(2);
+  };
+
   function registerMatchResult(player1, player2, player1Games, player2Games, match) {
     match.result = [{games1:player1Games, games2:player2Games}];
           
@@ -62,7 +91,31 @@ define(['foliage',
     }
   };
 
+  function sortPlayers(players) {
+    players.sort(function(a, b) {
+      if(matchPoints(b.results) == matchPoints(a.results)) {
+        if(opponentsMatchWinPercentage(b.results) == 
+           opponentsMatchWinPercentage(a.results)) {
+          return opponentsGameWinPercentage(b.results) -
+            opponentsGameWinPercentage(a.results);
+        } else {
+          return opponentsMatchWinPercentage(b.results) - 
+            opponentsMatchWinPercentage(a.results);
+        };
+      } else {
+        return matchPoints(b.results) - matchPoints(a.results);
+      };
+    });
+
+    return players;
+  };
+
   function handleRound(matches) {
+    _.each(matches, function(match) {
+      if(!match.player2)
+        registerMatchResult(match.player1, match.player2, 2, 0, match);
+    })
+
     var start = new Date().getTime();
     roundTimerId = window.setInterval(function() {
       var elapsed = new Date().getTime() - start;
@@ -81,11 +134,13 @@ define(['foliage',
     if(typeof roundReport == 'undefined') return f.div();
 
     var minutes = Math.floor(roundReport.time/60);
-    var seconds = roundReport.time%60 < 10 ? '0' + roundReport.time%60 : roundReport.time%60;
+    var seconds = roundReport.time%60 < 10 ? '0' + 
+      roundReport.time%60 : roundReport.time%60;
       
     return f.div('#roundPanel', 
-                 f.div('#roundTimer', f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                                             {'class': roundReport.time <= 0 ? 'timerEnded' : ''})));
+                 f.div('#roundTimer', 
+                       f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                              {'class': roundReport.time <= 0 ? 'timerEnded' : ''})));
   }
 
   function buttonToStartRound(matches) {
@@ -113,7 +168,6 @@ define(['foliage',
     if(player2)
       return player2.name;
     else {
-      registerMatchResult(player1, player2, 2, 0, match);
       return '- Bye -';
     }
   };
@@ -162,18 +216,6 @@ define(['foliage',
     matchStream.push(matches);
   };
 
-  function shuffle(array) {
-    var len = array.length;
-    var i = len;
-    while (i--) {
-      var p = parseInt(Math.random()*len);
-      var t = array[i];
-      array[i] = array[p];
-      array[p] = t;
-    }
-    return array;
-  };
-
   function maxPoints(array) {
     var max = -1, maxIndex = -1;
     for(var i = 0; i<array.length; i++) {
@@ -186,7 +228,7 @@ define(['foliage',
   };
 
   function pairForConsecutiveRound(players) {
-    players = shuffle(players);
+    var players = _.shuffle(players);
 
     var playersAndPoints = [];
     _.map(players, function(player) {
@@ -218,14 +260,22 @@ define(['foliage',
       var player1Games = match.result[0].games1;
       var player2Games = match.result[0].games2;
 
-      match.player1.results = match.player1.results.concat([{wins:player1Games, loss:player2Games}]);
+      match.player1.results = 
+        match.player1.results.concat([{wins:player1Games, 
+                                       loss:player2Games, 
+                                       opponent:match.player2}]);
       match.player1.resultStream.push(match.player1.results)
       if(match.player2) {
-        match.player2.results = match.player2.results.concat([{wins:player2Games, loss:player1Games}]);
+        match.player2.results = 
+          match.player2.results.concat([{wins:player2Games, 
+                                         loss:player1Games,
+                                         opponent:match.player1}]);
         match.player2.resultStream.push(match.player2.results)
       }
     });
     roundNumber++;
+    players = sortPlayers(players);
+    playerStream.push(players);
     pairForConsecutiveRound(players);
   };
 
@@ -267,7 +317,9 @@ define(['foliage',
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
                 f.span('MWP', {'class':'span1'}),
-                f.span('GWP', {'class':'span3'})),
+                f.span('GWP', {'class':'span1'}),
+                f.span('OMP', {'class':'span1'}),
+                f.span('OGP', {'class':'span1'})),
           b.bind(playerStream.read,
                  function(players) {
                    return f.span(_.map(players, function(player) {
@@ -283,6 +335,16 @@ define(['foliage',
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(gameWinPercentage(results));
-                                                }), {'class':'span3'})
+                                                }), {'class':'span1'}),
+                                  f.span(b.bind(player.resultStream.read,
+                                                function(results){
+                                                  return f.span(
+                                                    opponentsMatchWinPercentage(results));
+                                                }), {'class':'span1'}),
+                                  f.span(b.bind(player.resultStream.read,
+                                                function(results){
+                                                  return f.span(
+                                                    opponentsGameWinPercentage(results));
+                                                }), {'class':'span1'})
                                  )}))})
          ))})
