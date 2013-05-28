@@ -9,6 +9,8 @@ define(['foliage',
          _, 
          on) {
 
+  var NUM_ROUNDS = 3;
+
   var matches = [];
   var players = [];
   var matchStream = phloem.stream();
@@ -126,18 +128,19 @@ define(['foliage',
         allMatchesFinished &= (match.result.length > 0);
       })
 
-      roundReportStream.push({time:timeLeft, roundFinished:allMatchesFinished})
+      roundReportStream.push({time:timeLeft, roundFinished:allMatchesFinished, tournamentResult:undefined})
     }, 1000);
   }
 
   function roundReportPanel(roundReport) {
-    if(typeof roundReport == 'undefined') return f.div();
+    if(typeof roundReport == 'undefined' || roundReport.tournamentResult) return f.div();
 
     var minutes = Math.floor(roundReport.time/60);
     var seconds = roundReport.time%60 < 10 ? '0' + 
       roundReport.time%60 : roundReport.time%60;
       
     return f.div('#roundPanel', 
+                 f.div('#roundTitle', f.span('Round ' + roundNumber)),
                  f.div('#roundTimer', 
                        f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
                               {'class': roundReport.time <= 0 ? 'timerEnded' : ''})));
@@ -145,7 +148,6 @@ define(['foliage',
 
   function buttonToStartRound(matches) {
     return _.size(matches) > 0 ? f.div(
-      f.div('#roundTitle', f.span('Round ' + roundNumber)),
       f.button('Start round', 
                {'class':'btn roundButton'},
                on.click(function(){
@@ -156,9 +158,12 @@ define(['foliage',
 
   function buttonToFinishRoundAndPairNext(roundReport) {
     return roundReport && roundReport.roundFinished ?  
-      f.button('Finish round and pair for next',
+      f.button(roundNumber < NUM_ROUNDS ? 
+               'Finish round and pair for next' : 
+               'Finish round and show results',
                {'class':'btn roundButton'},
                on.click(function() {
+                 $(this).fadeOut();
                  window.clearInterval(roundTimerId);
                  reportResultsAndPairForNextRound(matches, players);
                })) : f.div();
@@ -273,10 +278,18 @@ define(['foliage',
         match.player2.resultStream.push(match.player2.results)
       }
     });
-    roundNumber++;
+    
     players = sortPlayers(players);
     playerStream.push(players);
-    pairForConsecutiveRound(players);
+    
+    if(roundNumber < NUM_ROUNDS) {
+      roundNumber++;
+      pairForConsecutiveRound(players);
+    } else {
+      matches = [];
+      matchStream.push(matches);
+      roundReportStream.push({time:3600, roundFinished:false, tournamentResult:'Standings after Final Round:'});
+    }
   };
 
   return f.div(
@@ -291,7 +304,7 @@ define(['foliage',
                                                 resultStream:phloem.stream()});
                                      $('#player_name').select();
                                    }})),
-                  f.p(f.button('Pair for Round 1', {'class':'btn'},
+                  f.p(f.button('Pair for Round One', {'class':'btn'},
                               on.click(function(){
                                 $('#newplayer').fadeOut();
                                 pairForRoundOne(players)  
@@ -302,6 +315,10 @@ define(['foliage',
              return createMatchTables(matches)}),
     b.bind(matchStream.read,
            function(matches) {
+             if(matches && matches.length > 0) {
+               roundReportStream.push({time:3600, 
+                                       roundFinished:false, tournamentResult:undefined});
+             }
              return buttonToStartRound(matches);
            }),
     b.bind(roundReportStream.read,
@@ -311,6 +328,14 @@ define(['foliage',
     b.bind(roundReportStream.read,
           function(roundReport) {
             return buttonToFinishRoundAndPairNext(roundReport);
+          }),
+    b.bind(roundReportStream.read,
+          function(roundReport) {
+            if(roundReport && roundReport.tournamentResult) {
+              return f.div('#tournamentResult', f.span(roundReport.tournamentResult));
+            } else {
+              return f.div();
+            }
           }),
     f.div('#players',
           f.div('#players_header',
