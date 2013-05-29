@@ -426,6 +426,7 @@ define(['foliage',
           }),
     f.div('#players',
           f.div('#players_header', {'class':'row'},
+                f.span('', {'class':'span1'}),
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
                 f.span('GWP', {'title':'Players Game Win Percentage','class':'span1'},
@@ -441,12 +442,20 @@ define(['foliage',
                      return f.div({'class':'row'}, 
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
-                                  }),
-                                  on.click(function() {
                                     if(matches.length == 0) {
-                                      players = _.without(players, player);
-                                      playerStream.push(players)};
+                                      $(this).find('.deleteButton').toggle()};
                                   }),
+                                  f.div({'class':'span1'}, f.button('x', {'class':'deleteButton',
+                                                                          'style':'display:none',
+                                                                          'title':'Click to Delete Player'},
+                                                                    on.hover(function() {
+                                                                      $(this).tooltip();
+                                                                    }),
+                                                                    on.click(function() {
+                                                                      if(matches.length == 0) {
+                                                                        players = _.without(players, player);
+                                                                        playerStream.push(players)};
+                                                                    }))),
                                   f.span(player.name, {'class':'span2'}), 
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
