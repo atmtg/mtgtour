@@ -170,12 +170,8 @@ define(['foliage',
                })) : f.div();
   }
 
-  function opponentName(player1, player2, match) {
-    if(player2)
-      return player2.name;
-    else {
-      return '- Bye -';
-    }
+  function opponentName(player2) {
+    return player2 ? player2.name : '- Bye -';
   };
 
   function createMatchTables(matches) {
@@ -193,7 +189,7 @@ define(['foliage',
                    }),
                    f.div({'class':'matchTableSurface'}),
                    f.p(player1.name, {'class':'playerName'}),
-                   f.p(opponentName(player1, player2, match), {'class':'player2 playerName'}),
+                   f.p(opponentName(player2), {'class':'player2 playerName'}),
                    b.bind(match.reportStream.read, function(report) {
                      return f.div({'class':'matchResult'}, 
                                  f.span(report));
@@ -222,15 +218,39 @@ define(['foliage',
     matchStream.push(matches);
   };
 
-  function maxPoints(array) {
+  function maxPoints(array, optionalFilter) {
     var max = -1, maxIndex = -1;
     for(var i = 0; i<array.length; i++) {
+      if(optionalFilter && !_.contains(optionalFilter, i)) continue;
+
       if(parseInt(array[i].points, 10) > max) {
         max = array[i].points;
         maxIndex = i;
       }
     }
     return maxIndex;
+  };
+
+  function matchesPlayed(player1, player2) {
+    return _.reduce(player2.results, function(acc, result) {
+      if(result.opponent && result.opponent == player1) 
+        return acc + 1;
+      return acc;
+    }, 0)
+  };
+
+  function leastFrequentOpponents(playersAndPoints, player) {
+    var numMatchesPlayed = 0;
+    var playersFaced = [];
+    while(playersFaced.length == 0) {
+      for(var i = 0; i<playersAndPoints.length; i++) {
+        if(matchesPlayed(playersAndPoints[i].thePlayer, player) == numMatchesPlayed) {
+          playersFaced = playersFaced.concat(i);
+        }
+      }
+      numMatchesPlayed++;
+    }
+    return playersFaced;
   };
 
   function calculateByes(results) {
@@ -242,20 +262,20 @@ define(['foliage',
     }, 0)
 
     return byes;
-  }
+  };
 
   function playersWithMinByes(playersAndPoints) {
     var minByes = _.min(playersAndPoints, function(playerAndPoint) {
       return playerAndPoint.byes;
-    })
+    });
     
     var indexes = [];
     for(var i = 0; i<playersAndPoints.length; i++) {
       if(playersAndPoints[i].byes == minByes.byes)
         indexes = indexes.concat(i);
-    }
+    };
     return indexes;
-  }
+  };
 
   function pairForConsecutiveRound(players) {
     var players = _.shuffle(players);
@@ -269,7 +289,6 @@ define(['foliage',
     });
     
     matches = [];
-
     while(playersAndPoints.length > 0) {
       var listOfPlayersWithMinByes = playersWithMinByes(playersAndPoints);
       if(listOfPlayersWithMinByes.length == 1) {
@@ -282,13 +301,14 @@ define(['foliage',
       } 
 
       var indexOfPlayer1 = maxPoints(playersAndPoints);
-      var ply1 = playersAndPoints[indexOfPlayer1].thePlayer, ply2 = undefined;
+      var ply1 = playersAndPoints[indexOfPlayer1].thePlayer;
       playersAndPoints.splice(indexOfPlayer1, 1);
-      if(playersAndPoints.length > 0) {
-        var indexOfPlayer2 = maxPoints(playersAndPoints);
-        var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
-        playersAndPoints.splice(indexOfPlayer2, 1);
-      }
+
+      var leastFrequentOpponentIndexes = leastFrequentOpponents(playersAndPoints, ply1)
+      var indexOfPlayer2 = maxPoints(playersAndPoints, leastFrequentOpponentIndexes);
+      var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
+      playersAndPoints.splice(indexOfPlayer2, 1);
+
       matches = matches.concat([{player1:ply1, 
                                  player2:ply2, 
                                  reportStream:phloem.stream(), 
