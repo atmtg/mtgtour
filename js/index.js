@@ -79,6 +79,19 @@ define(['foliage',
       (accumulatedGameWinPercentage / numOpponents).toFixed(2);
   };
 
+  function matchLog(results) {
+    var matchLogString = '';
+    _.each(results, function(result) {
+      if(result.opponent) {
+        matchLogString += result.opponent.name + ' (' + 
+          result.wins + ' - ' + result.loss + '), '
+      } else {
+        matchLogString += '- Bye -, ';
+      }
+    });
+    return matchLogString;
+  }
+
   function registerMatchResult(player1, player2, player1Games, player2Games, match) {
     match.result = [{games1:player1Games, games2:player2Games}];
           
@@ -398,24 +411,26 @@ define(['foliage',
             }
           }),
     f.div('#players',
-          f.div('#players_header',
+          f.div('#players_header', {'class':'row'},
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
-                f.span('MWP', {'class':'span1'}),
                 f.span('GWP', {'class':'span1'}),
                 f.span('OMP', {'class':'span1'}),
-                f.span('OGP', {'class':'span1'})),
+                f.span('OGP', {'class':'span1'}),
+                f.span('Match Log', {'class':'span5'})),
           b.bind(playerStream.read,
-                 function(players) {
-                   return f.span(_.map(players, function(player) {
-                     return f.div(f.span(player.name, {'class':'span2'}), 
+                 function(currentPlayers) {
+                   return f.div(_.map(currentPlayers, function(player) {
+                     return f.div({'class':'row'},
+                                  f.button('x', on.click(function() {
+                                    if(matches.length == 0) {
+                                      players = _.without(players, player);
+                                      playerStream.push(players)};
+                                  })),
+                                  f.span(player.name, {'class':'span2'}), 
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(matchPoints(results));
-                                                }), {'class':'span1'}),
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(matchWinPercentage(results));
                                                 }), {'class':'span1'}),
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
@@ -429,7 +444,12 @@ define(['foliage',
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(
-                                                    opponentsGameWinPercentage(results));
-                                                }), {'class':'span1'})
+                                                    opponentsMatchWinPercentage(results));
+                                                }), {'class':'span1'}),
+                                  f.span(b.bind(player.resultStream.read,
+                                                function(results){
+                                                  return f.span(
+                                                    matchLog(results));
+                                                }), {'class':'span5 matchLog'})
                                  )}))})
          ))})
