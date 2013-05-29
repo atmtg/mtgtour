@@ -10,6 +10,7 @@ define(['foliage',
          on) {
 
   var NUM_ROUNDS = 3;
+  var ROUND_TIME = 3600;
 
   var matches = [];
   var players = [];
@@ -121,7 +122,7 @@ define(['foliage',
     var start = new Date().getTime();
     roundTimerId = window.setInterval(function() {
       var elapsed = new Date().getTime() - start;
-      var timeLeft = 3600 - Math.floor(elapsed/1000);
+      var timeLeft = ROUND_TIME - Math.floor(elapsed/1000);
       
       var allMatchesFinished = true;
       _.map(matches, function(match) {
@@ -232,6 +233,30 @@ define(['foliage',
     return maxIndex;
   };
 
+  function calculateByes(results) {
+    var byes = _.reduce(results, function(acc, result) {
+      if(result.opponent) {
+        return acc;
+      }
+      return acc + 1;
+    }, 0)
+
+    return byes;
+  }
+
+  function playersWithMinByes(playersAndPoints) {
+    var minByes = _.min(playersAndPoints, function(playerAndPoint) {
+      return playerAndPoint.byes;
+    })
+    
+    var indexes = [];
+    for(var i = 0; i<playersAndPoints.length; i++) {
+      if(playersAndPoints[i].byes == minByes.byes)
+        indexes = indexes.concat(i);
+    }
+    return indexes;
+  }
+
   function pairForConsecutiveRound(players) {
     var players = _.shuffle(players);
 
@@ -239,11 +264,23 @@ define(['foliage',
     _.map(players, function(player) {
       playersAndPoints = 
         playersAndPoints.concat([{thePlayer:player, 
-                                  points:matchPoints(player.results)}]);
+                                  points:matchPoints(player.results),
+                                  byes:calculateByes(player.results)}]);
     });
     
     matches = [];
+
     while(playersAndPoints.length > 0) {
+      var listOfPlayersWithMinByes = playersWithMinByes(playersAndPoints);
+      if(listOfPlayersWithMinByes.length == 1) {
+        matches = matches.concat([{player1:playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer, 
+                                   player2:undefined, 
+                                   reportStream:phloem.stream(), 
+                                   result:[]}]);
+        playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
+        continue;
+      } 
+
       var indexOfPlayer1 = maxPoints(playersAndPoints);
       var ply1 = playersAndPoints[indexOfPlayer1].thePlayer, ply2 = undefined;
       playersAndPoints.splice(indexOfPlayer1, 1);
@@ -257,6 +294,7 @@ define(['foliage',
                                  reportStream:phloem.stream(), 
                                  result:[]}]);
     };
+
     matchStream.push(matches);
   };
 
@@ -288,7 +326,9 @@ define(['foliage',
     } else {
       matches = [];
       matchStream.push(matches);
-      roundReportStream.push({time:3600, roundFinished:false, tournamentResult:'Standings after Final Round:'});
+      roundReportStream.push({time:ROUND_TIME, 
+                              roundFinished:false, 
+                              tournamentResult:'Standings after Final Round:'});
     }
   };
 
@@ -316,7 +356,7 @@ define(['foliage',
     b.bind(matchStream.read,
            function(matches) {
              if(matches && matches.length > 0) {
-               roundReportStream.push({time:3600, 
+               roundReportStream.push({time:ROUND_TIME, 
                                        roundFinished:false, tournamentResult:undefined});
              }
              return buttonToStartRound(matches);
