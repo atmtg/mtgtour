@@ -421,12 +421,15 @@ define(['foliage',
           b.bind(playerStream.read,
                  function(currentPlayers) {
                    return f.div(_.map(currentPlayers, function(player) {
-                     return f.div({'class':'row'},
-                                  f.button('x', on.click(function() {
+                     return f.div({'class':'row'}, 
+                                  on.hover(function() {
+                                    $(this).toggleClass('emphasized');
+                                  }),
+                                  on.click(function() {
                                     if(matches.length == 0) {
                                       players = _.without(players, player);
                                       playerStream.push(players)};
-                                  })),
+                                  }),
                                   f.span(player.name, {'class':'span2'}), 
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
