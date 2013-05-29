@@ -9,7 +9,7 @@ define(['foliage',
          _, 
          on) {
 
-  var NUM_ROUNDS = 9;
+  var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
   var matches = [];
@@ -194,7 +194,9 @@ define(['foliage',
       var player1 = match.player1;
       var player2 = match.player2;
 
-      return f.div('#table' + tableCount++, {'class':'matchtable'},
+      return f.div('#table' + tableCount++, {'class':'matchtable', 
+                                             'title':'Click Table to Register Match Result'},
+                   on.hover(function() {$(this).tooltip();}),
                    on.click(function(){
                      if(player2) {
                        $(this).find('.buttonPanel').fadeToggle();
@@ -426,9 +428,12 @@ define(['foliage',
           f.div('#players_header', {'class':'row'},
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
-                f.span('GWP', {'class':'span1'}),
-                f.span('OMP', {'class':'span1'}),
-                f.span('OGP', {'class':'span1'}),
+                f.span('GWP', {'title':'Players Game Win Percentage','class':'span1'},
+                      on.hover(function() {$(this).tooltip();})),
+                f.span('OMP', {'title':'Average Match Win Percentage of Played Opponents','class':'span1'},
+                      on.hover(function() {$(this).tooltip();})),
+                f.span('OGP', {'title':'Average Game Win Percentage of Played Opponents','class':'span1'},
+                      on.hover(function() {$(this).tooltip();})),
                 f.span('Match Log', {'class':'span5'})),
           b.bind(playerStream.read,
                  function(currentPlayers) {
