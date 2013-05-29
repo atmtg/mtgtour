@@ -9,7 +9,7 @@ define(['foliage',
          _, 
          on) {
 
-  var NUM_ROUNDS = 3;
+  var NUM_ROUNDS = 9;
   var ROUND_TIME = 3600;
 
   var matches = [];
@@ -84,7 +84,7 @@ define(['foliage',
     _.each(results, function(result) {
       if(result.opponent) {
         matchLogString += result.opponent.name + ' (' + 
-          result.wins + ' - ' + result.loss + '), '
+          result.wins + '-' + result.loss + '), '
       } else {
         matchLogString += '- Bye -, ';
       }
@@ -368,20 +368,33 @@ define(['foliage',
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
-                         f.input('#player_name', {'type': 'text', 
-                                                  'placeholder':'Player name'}, bus.expose,
-                                 on.keypress(function(event) {
-                                   if(event.keyCode === 13 || event.keyCode === 10) {
-                                     addPlayer({name:bus.player_name(),
-                                                results:[],
-                                                resultStream:phloem.stream()});
-                                     $('#player_name').select();
-                                   }})),
-                  f.p(f.button('Pair for Round One', {'class':'btn'},
-                              on.click(function(){
-                                $('#newplayer').fadeOut();
-                                pairForRoundOne(players)  
-                              }))))}),
+                   f.div({'class':'row'},
+                         f.div({'class':'span4'}, 
+                               f.input('#player_name', {'type': 'text', 
+                                                        'placeholder':'Player name'}, bus.expose,
+                                       on.keypress(function(event) {
+                                         if(event.keyCode === 13 || event.keyCode === 10) {
+                                           addPlayer({name:bus.player_name(),
+                                                      results:[],
+                                                      resultStream:phloem.stream()});
+                                           $('#player_name').select();
+                                         }})))),
+                   f.div({'class':'row'},
+                         f.div({'class':'span1'}, 
+                               f.img('#randomize_button', {'src':'../img/media-shuffle.png', 'class':'btn', 
+                                          'title':'Randomize Seating for Draft'},
+                                     on.hover(function() {
+                                       $(this).tooltip();
+                                     }),
+                                     on.click(function(){
+                                       players = _.shuffle(players);
+                                       playerStream.push(players);
+                                     }))),
+                         f.div(f.button('Pair for Round One', {'class':'btn span3'},
+                                        on.click(function(){
+                                          $('#newplayer').fadeOut();
+                                          pairForRoundOne(players)  
+                                        })))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
            function(matches) {
@@ -406,9 +419,8 @@ define(['foliage',
           function(roundReport) {
             if(roundReport && roundReport.tournamentResult) {
               return f.div('#tournamentResult', f.span(roundReport.tournamentResult));
-            } else {
-              return f.div();
-            }
+            } 
+            return f.div();
           }),
     f.div('#players',
           f.div('#players_header', {'class':'row'},
