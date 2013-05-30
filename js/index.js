@@ -47,7 +47,8 @@ define(['foliage',
       acc.total += val.wins + val.loss;
       return acc}, {wins:0, total:0})
 
-    return winsAndTotal.total == 0 ? 0 : ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
+    return winsAndTotal.total == 0 ? (0).toFixed(2) : 
+      ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
   };
          
   function opponentsMatchWinPercentage(results) {
@@ -60,7 +61,7 @@ define(['foliage',
       };
     });
 
-    return numOpponents == 0 ? 0 : 
+    return numOpponents == 0 ? (0).toFixed(2) : 
       (accumulatedMatchWinPercentage / numOpponents).toFixed(2);
   };
 
@@ -75,7 +76,7 @@ define(['foliage',
       };
     });
 
-    return numOpponents == 0 ? 0 :
+    return numOpponents == 0 ? (0).toFixed(2) :
       (accumulatedGameWinPercentage / numOpponents).toFixed(2);
   };
 
