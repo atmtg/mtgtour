@@ -133,8 +133,8 @@ define(['foliage',
 
   function handleRound(matches) {
     _.each(matches, function(match) {
-      if(!match.player2)
-        registerMatchResult(match.player1, match.player2, 2, 0, match);
+      if(!match.players[1])
+        registerMatchResult(match.players[0], match.players[1], 2, 0, match);
     })
 
     var start = new Date().getTime();
@@ -196,8 +196,8 @@ define(['foliage',
     var tableCount = 1;
 
     return f.div('#matchboard', _.map(matches, function(match) {
-      var player1 = match.player1;
-      var player2 = match.player2;
+      var player1 = match.players[0];
+      var player2 = match.players[1];
 
       return f.div('#table' + tableCount++, {'class':'matchtable span3', 
                                              'title':'Click Table to Register Match Result'},
@@ -233,7 +233,7 @@ define(['foliage',
     var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
     var pairings = _.zip(firstHalf, secondHalf);
     matches = _.map(pairings, function(pairing) {
-      return {player1:pairing[0], player2:pairing[1], reportStream:phloem.stream(), result:[]};
+      return {players:pairing, reportStream:phloem.stream(), result:[]};
     });
     matchStream.push(matches);
   };
@@ -309,15 +309,17 @@ define(['foliage',
     });
     
     matches = [];
+    var byeGiven = playersAndPoints.length%2 == 0;
     while(playersAndPoints.length > 0) {
       var listOfPlayersWithMinByes = playersWithMinByes(playersAndPoints);
-      if((playersAndPoints%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
-         (playersAndPoints%2 == 0 && listOfPlayersWithMinyes == 2)) {
-        matches = matches.concat([{player1:playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer, 
-                                   player2:undefined, 
+      if(!byeGiven && ((playersAndPoints.length%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
+                       (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
+        matches = matches.concat([{players:[playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
+                                            undefined], 
                                    reportStream:phloem.stream(), 
                                    result:[]}]);
         playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
+        byeGiven = true;
         continue;
       } 
 
@@ -330,8 +332,7 @@ define(['foliage',
       var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
       playersAndPoints.splice(indexOfPlayer2, 1);
 
-      matches = matches.concat([{player1:ply1, 
-                                 player2:ply2, 
+      matches = matches.concat([{players:[ply1, ply2], 
                                  reportStream:phloem.stream(), 
                                  result:[]}]);
     };
@@ -341,20 +342,20 @@ define(['foliage',
 
   function reportResultsAndPairForNextRound(matches, players) {
     _.map(matches, function(match) {
+      var player1 = match.players[0];
+      var player2 = match.players[1];
       var player1Games = match.result[0].games1;
       var player2Games = match.result[0].games2;
 
-      match.player1.results = 
-        match.player1.results.concat([{wins:player1Games, 
-                                       loss:player2Games, 
-                                       opponent:match.player2}]);
-      match.player1.resultStream.push(match.player1.results)
-      if(match.player2) {
-        match.player2.results = 
-          match.player2.results.concat([{wins:player2Games, 
-                                         loss:player1Games,
-                                         opponent:match.player1}]);
-        match.player2.resultStream.push(match.player2.results)
+      player1.results = player1.results.concat([{wins:player1Games, 
+                                                 loss:player2Games, 
+                                                 opponent:player2}]);
+      player1.resultStream.push(player1.results)
+      if(player2) {
+        player2.results = player2.results.concat([{wins:player2Games, 
+                                                   loss:player1Games,
+                                                   opponent:player1}]);
+        player2.resultStream.push(player2.results)
       }
     });
     
