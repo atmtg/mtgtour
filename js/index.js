@@ -43,12 +43,12 @@ define(['foliage',
 
   function gameWinPercentage(results) {
     var winsAndTotal = _.reduce(results, function(acc, val) {
-      acc.wins += val.wins;
+      acc.wins += (val.wins * 3);
       acc.total += val.wins + val.loss;
       return acc}, {wins:0, total:0})
 
     return winsAndTotal.total == 0 ? (0).toFixed(2) : 
-      ((winsAndTotal.wins / winsAndTotal.total) * 100).toFixed(2);
+      ((winsAndTotal.wins / (winsAndTotal.total * 3)) * 100).toFixed(2);
   };
          
   function opponentsMatchWinPercentage(results) {
@@ -113,8 +113,12 @@ define(['foliage',
       if(matchPoints(b.results) == matchPoints(a.results)) {
         if(opponentsMatchWinPercentage(b.results) == 
            opponentsMatchWinPercentage(a.results)) {
-          return opponentsGameWinPercentage(b.results) -
-            opponentsGameWinPercentage(a.results);
+          if(gameWinPercentage(b.results) == gameWinPercentage(a.results)) {
+            return opponentsGameWinPercentage(b.results) -
+              opponentsGameWinPercentage(a.results);
+          } else {
+            return gameWinPercentage(b.results) - gameWinPercentage(a.results);
+          };
         } else {
           return opponentsMatchWinPercentage(b.results) - 
             opponentsMatchWinPercentage(a.results);
