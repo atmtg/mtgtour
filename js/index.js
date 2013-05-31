@@ -195,7 +195,7 @@ define(['foliage',
       var player1 = match.player1;
       var player2 = match.player2;
 
-      return f.div('#table' + tableCount++, {'class':'matchtable', 
+      return f.div('#table' + tableCount++, {'class':'matchtable span3', 
                                              'title':'Click Table to Register Match Result'},
                    on.hover(function() {$(this).tooltip();}),
                    on.click(function(){
@@ -203,13 +203,13 @@ define(['foliage',
                        $(this).find('.buttonPanel').fadeToggle();
                      }
                    }),
-                   f.div({'class':'matchTableSurface'}),
-                   f.p(player1.name, {'class':'playerName'}),
-                   f.p(opponentName(player2), {'class':'player2 playerName'}),
-                   b.bind(match.reportStream.read, function(report) {
-                     return f.div({'class':'matchResult'}, 
-                                 f.span(report));
-                   }),
+                   f.div(f.div({'class':'matchTableSurface'}),
+                         f.p(player1.name, {'class':'playerName'}),
+                         f.p(opponentName(player2), {'class':'player2 playerName'}),
+                         b.bind(match.reportStream.read, function(report) {
+                           return f.div({'class':'matchResult'}, 
+                                        f.span(report));
+                         })),
                    f.div({'class':'buttonPanel', 'style':'display:none'},
                          f.button('2-0', {'class':'btn'}, on.click(function(){
                            registerMatchResult(player1, player2, 2, 0, match);})),
@@ -220,8 +220,8 @@ define(['foliage',
                          f.button('1-2', {'class':'btn'}, on.click(function(){
                            registerMatchResult(player1, player2, 1, 2, match);})),
                          f.button('0-2', {'class':'btn'}, on.click(function(){
-                           registerMatchResult(player1, player2, 0, 2, match);}))
-                        ))})
+                           registerMatchResult(player1, player2, 0, 2, match);})))
+                  )})
                 )};
 
   function pairForRoundOne(players) {
@@ -307,7 +307,8 @@ define(['foliage',
     matches = [];
     while(playersAndPoints.length > 0) {
       var listOfPlayersWithMinByes = playersWithMinByes(playersAndPoints);
-      if(listOfPlayersWithMinByes.length == 1) {
+      if((playersAndPoints%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
+         (playersAndPoints%2 == 0 && listOfPlayersWithMinyes == 2)) {
         matches = matches.concat([{player1:playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer, 
                                    player2:undefined, 
                                    reportStream:phloem.stream(), 
