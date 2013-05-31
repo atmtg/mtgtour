@@ -19,9 +19,18 @@ define(['foliage',
   var roundReportStream = phloem.stream();
   var roundTimerId;
   var roundNumber = 1;
+  var playerSelected;
 
   matchStream.push(matches);
   playerStream.push(players);
+
+  function tournamentStarted() {
+    return matches.length != 0;
+  };
+
+  function roundTimerRunning() {
+    return roundTimerId != undefined;
+  }
 
   function addPlayer(player) {
     players = players.concat([player]);
@@ -184,12 +193,45 @@ define(['foliage',
                on.click(function() {
                  $(this).fadeOut();
                  window.clearInterval(roundTimerId);
+                 roundTimerId = undefined;
                  reportResultsAndPairForNextRound(matches, players);
                })) : f.div();
   }
 
   function opponentName(player2) {
     return player2 ? player2.name : '- Bye -';
+  };
+
+  function cleanUpMatch(match) {
+    if(!match.players[0] && !match.players[1]) {
+      matches.splice(match, 1);
+    }
+
+    if(!match.players[0]) {
+      match.players[0] = match.players[1];
+      match.players[1] = undefined;
+    }
+  };
+
+  function onClickSelectOrMove(match, playerIndex) {
+    return on.click(function() {
+      if(!roundTimerRunning()) {
+        if(playerSelected) {
+          var tempPlayer = match.players[playerIndex];
+          match.players[playerIndex] = playerSelected.theMatch.players[playerSelected.thePlayerIndex];
+          playerSelected.theMatch.players[playerSelected.thePlayerIndex] = tempPlayer;
+          
+          cleanUpMatch(match);
+          cleanUpMatch(playerSelected.theMatch);
+          
+          playerSelected = undefined;
+          matchStream.push(matches);
+        } else {
+          playerSelected = {theMatch:match, thePlayerIndex:playerIndex};
+        } 
+        $(this).toggleClass('selected');
+      }
+    });
   };
 
   function createMatchTables(matches) {
@@ -203,13 +245,14 @@ define(['foliage',
                                              'title':'Click Table to Register Match Result'},
                    on.hover(function() {$(this).tooltip();}),
                    on.click(function(){
-                     if(player2) {
+                     if(player2 && roundTimerRunning()) {
                        $(this).find('.buttonPanel').fadeToggle();
                      }
                    }),
                    f.div(f.div({'class':'matchTableSurface'}),
-                         f.p(player1.name, {'class':'playerName'}),
-                         f.p(opponentName(player2), {'class':'player2 playerName'}),
+                         f.p(player1.name, {'class':'playerName'}, onClickSelectOrMove(match, 0)),
+                         f.p(opponentName(player2), {'class':'player2 playerName'}, 
+                             onClickSelectOrMove(match, 1)),
                          b.bind(match.reportStream.read, function(report) {
                            return f.div({'class':'matchResult'}, 
                                         f.span(report));
@@ -449,7 +492,7 @@ define(['foliage',
                      return f.div({'class':'row'}, 
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
-                                    if(matches.length == 0) {
+                                    if(!tournamentStarted()) {
                                       $(this).find('.deleteButton').toggle()};
                                   }),
                                   f.div({'class':'span1'}, f.button('x', {'class':'deleteButton',
@@ -459,7 +502,7 @@ define(['foliage',
                                                                       $(this).tooltip();
                                                                     }),
                                                                     on.click(function() {
-                                                                      if(matches.length == 0) {
+                                                                      if(!tournamentStarted()) {
                                                                         players = _.without(players, player);
                                                                         playerStream.push(players)};
                                                                     }))),
