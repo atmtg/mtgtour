@@ -242,7 +242,7 @@ define(['foliage',
       var player2 = match.players[1];
 
       return f.div('#table' + tableCount++, {'class':'matchtable span3', 
-                                             'title':'Click Table to Register Match Result'},
+                                             'title':'Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'},
                    on.hover(function() {$(this).tooltip();}),
                    on.click(function(){
                      if(player2 && roundTimerRunning()) {
@@ -479,12 +479,12 @@ define(['foliage',
                 f.span('', {'class':'span1'}),
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
-                f.span('GWP', {'title':'Players Game Win Percentage','class':'span1'},
-                      on.hover(function() {$(this).tooltip();})),
                 f.span('OMP', {'title':'Average Match Win Percentage of Played Opponents','class':'span1'},
-                      on.hover(function() {$(this).tooltip();})),
+                       on.hover(function() {$(this).tooltip();})),
+                f.span('GWP', {'title':'Players Game Win Percentage','class':'span1'},
+                       on.hover(function() {$(this).tooltip();})),
                 f.span('OGP', {'title':'Average Game Win Percentage of Played Opponents','class':'span1'},
-                      on.hover(function() {$(this).tooltip();})),
+                       on.hover(function() {$(this).tooltip();})),
                 f.span('Match Log', {'class':'span5'})),
           b.bind(playerStream.read,
                  function(currentPlayers) {
@@ -513,12 +513,12 @@ define(['foliage',
                                                 }), {'class':'span1'}),
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
-                                                  return f.span(gameWinPercentage(results));
+                                                  return f.span(
+                                                    opponentsMatchWinPercentage(results));
                                                 }), {'class':'span1'}),
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
-                                                  return f.span(
-                                                    opponentsMatchWinPercentage(results));
+                                                  return f.span(gameWinPercentage(results));
                                                 }), {'class':'span1'}),
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
