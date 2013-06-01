@@ -1,6 +1,7 @@
-curl = {
+curl({
     baseUrl: 'js',
     paths: {
+        'test': '../test',
         'jquery': 'ext/jquery-1.8.2',
         'curl/plugin/twig': '../modules/twig/twig',
         'curl/plugin/css': '../modules/curl/src/curl/plugin/css',
@@ -40,4 +41,6 @@ curl = {
             'main': 'when'
         }
     }
-};
+});
+
+window.require = curl;
