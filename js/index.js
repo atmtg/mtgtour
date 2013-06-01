@@ -24,6 +24,14 @@ define(['foliage',
   matchStream.push(matches);
   playerStream.push(players);
 
+  var tooltip = function(text) {
+    return function(parent) {
+      parent.attr('title', text);
+      parent.tooltip();
+      return {undo:function(){}}
+    }
+  }
+
   function tournamentStarted() {
     return matches.length != 0;
   };
@@ -176,8 +184,8 @@ define(['foliage',
 
   function buttonToStartRound(matches) {
     return _.size(matches) > 0 ? f.div(
-      f.button('Start round', 
-               {'class':'btn roundButton'},
+      f.button('.btn roundButton',
+               'Start round',
                on.click(function(){
                  handleRound(matches);
                  $(this).fadeOut();
@@ -186,10 +194,10 @@ define(['foliage',
 
   function buttonToFinishRoundAndPairNext(roundReport) {
     return roundReport && roundReport.roundFinished ?  
-      f.button(roundNumber < NUM_ROUNDS ? 
+      f.button('.btn roundButton',
+               roundNumber < NUM_ROUNDS ? 
                'Finish round and pair for next' : 
                'Finish round and show results',
-               {'class':'btn roundButton'},
                on.click(function() {
                  $(this).fadeOut();
                  window.clearInterval(roundTimerId);
@@ -241,32 +249,31 @@ define(['foliage',
       var player1 = match.players[0];
       var player2 = match.players[1];
 
-      return f.div('#table' + tableCount++, {'class':'matchtable span3', 
-                                             'title':'Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'},
-                   on.hover(function() {$(this).tooltip();}),
+      return f.div('#table' + tableCount++, {'class':'matchtable span3'},
+                   tooltip('Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'),
                    on.click(function(){
                      if(player2 && roundTimerRunning()) {
                        $(this).find('.buttonPanel').fadeToggle();
                      }
                    }),
-                   f.div(f.div({'class':'matchTableSurface'}),
-                         f.p(player1.name, {'class':'playerName'}, onClickSelectOrMove(match, 0)),
-                         f.p(opponentName(player2), {'class':'player2 playerName'}, 
+                   f.div(f.div('.matchTableSurface'),
+                         f.p('.playerName', player1.name, onClickSelectOrMove(match, 0)),
+                         f.p('.player2 playerName', opponentName(player2), 
                              onClickSelectOrMove(match, 1)),
                          b.bind(match.reportStream.read, function(report) {
-                           return f.div({'class':'matchResult'}, 
+                           return f.div('.matchResult', 
                                         f.span(report));
                          })),
-                   f.div({'class':'buttonPanel', 'style':'display:none'},
-                         f.button('2-0', {'class':'btn'}, on.click(function(){
+                   f.div('buttonPanel', {'style':'display:none'},
+                         f.button('.btn', '2-0', on.click(function(){
                            registerMatchResult(player1, player2, 2, 0, match);})),
-                         f.button('2-1', {'class':'btn'}, on.click(function(){
+                         f.button('.btn', '2-1', on.click(function(){
                            registerMatchResult(player1, player2, 2, 1, match);})),
-                         f.button('1-1', {'class':'btn'}, on.click(function(){
+                         f.button('.btn', '1-1', on.click(function(){
                            registerMatchResult(player1, player2, 1, 1, match);})),
-                         f.button('1-2', {'class':'btn'}, on.click(function(){
+                         f.button('.btn', '1-2', on.click(function(){
                            registerMatchResult(player1, player2, 1, 2, match);})),
-                         f.button('0-2', {'class':'btn'}, on.click(function(){
+                         f.button('.btn', '0-2', on.click(function(){
                            registerMatchResult(player1, player2, 0, 2, match);})))
                   )})
                 )};
@@ -359,7 +366,7 @@ define(['foliage',
                        (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
         matches = matches.concat([{players:[playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
                                             undefined], 
-                                   reportStream:phloem.stream(), 
+                                   reportStream:phloem.stream(),
                                    result:[]}]);
         playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
         byeGiven = true;
@@ -433,16 +440,13 @@ define(['foliage',
                                          }})))),
                    f.div({'class':'row'},
                          f.div({'class':'span1'}, 
-                               f.img('#randomize_button', {'src':'../img/media-shuffle.png', 'class':'btn', 
-                                          'title':'Randomize Seating for Draft'},
-                                     on.hover(function() {
-                                       $(this).tooltip();
-                                     }),
+                               f.img('#randomize_button', '.btn', {'src':'../img/media-shuffle.png'},
+                                     tooltip('Randomize Seating for Draft'),
                                      on.click(function(){
                                        players = _.shuffle(players);
                                        playerStream.push(players);
                                      }))),
-                         f.div(f.button('Pair for Round One', {'class':'btn span3'},
+                         f.div(f.button('btn span3', 'Pair for Round One',
                                         on.click(function(){
                                           $('#newplayer').fadeOut();
                                           pairForRoundOne(players)  
@@ -479,12 +483,12 @@ define(['foliage',
                 f.span('', {'class':'span1'}),
                 f.span('Player', {'class':'span2'}), 
                 f.span('Points', {'class':'span1'}),
-                f.span('OMP', {'title':'Average Match Win Percentage of Played Opponents','class':'span1'},
-                       on.hover(function() {$(this).tooltip();})),
-                f.span('GWP', {'title':'Players Game Win Percentage','class':'span1'},
-                       on.hover(function() {$(this).tooltip();})),
-                f.span('OGP', {'title':'Average Game Win Percentage of Played Opponents','class':'span1'},
-                       on.hover(function() {$(this).tooltip();})),
+                f.span('OMP', {'class':'span1'},
+                       tooltip('Average Match Win Percentage of Played Opponents')),
+                f.span('GWP', {'class':'span1'},
+                       tooltip('Players Game Win Percentage')),
+                f.span('OGP', {'class':'span1'},
+                       tooltip('Average Game Win Percentage of Played Opponents')),
                 f.span('Match Log', {'class':'span5'})),
           b.bind(playerStream.read,
                  function(currentPlayers) {
@@ -496,11 +500,8 @@ define(['foliage',
                                       $(this).find('.deleteButton').toggle()};
                                   }),
                                   f.div({'class':'span1'}, f.button('x', {'class':'deleteButton',
-                                                                          'style':'display:none',
-                                                                          'title':'Click to Delete Player'},
-                                                                    on.hover(function() {
-                                                                      $(this).tooltip();
-                                                                    }),
+                                                                          'style':'display:none'},
+                                                                    tooltip('Click to Delete Player'),
                                                                     on.click(function() {
                                                                       if(!tournamentStarted()) {
                                                                         players = _.without(players, player);
