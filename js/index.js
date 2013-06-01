@@ -12,13 +12,11 @@ define(['foliage',
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
-  var matches = [];
-  var players = [];
-  var matchStream = phloem.stream();
-  var playerStream = phloem.stream();
+  var matches = [], players = [];
+  var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
-  var roundTimerId;
-  var roundNumber = 1;
+  
+  var roundTimerId, roundNumber = 1;
   var playerSelected;
 
   matchStream.push(matches);
@@ -45,20 +43,20 @@ define(['foliage',
     playerStream.push(players);
   };
 
-  function matchPoints(results) {
+  var matchPoints = function(results) {
     return _.reduce(results, function(acc, val) {
       if(val.wins > val.loss) return acc + 3;
       if(val.wins == val.loss) return acc + 1;
       return acc}, 0)
   };
 
-  function matchWinPercentage(results) {
+  var matchWinPercentage = function (results) {
     var playersMatchPoints = matchPoints(results);
     
     return results ? (Math.max((playersMatchPoints/(results.length * 3)), 0.33) * 100).toFixed(2) : 0;
   };
 
-  function gameWinPercentage(results) {
+  var gameWinPercentage = function (results) {
     var winsAndTotal = _.reduce(results, function(acc, val) {
       acc.wins += (val.wins * 3);
       acc.total += val.wins + val.loss;
@@ -68,7 +66,7 @@ define(['foliage',
       ((winsAndTotal.wins / (winsAndTotal.total * 3)) * 100).toFixed(2);
   };
          
-  function opponentsMatchWinPercentage(results) {
+  var opponentsMatchWinPercentage = function (results) {
     var numOpponents = 0;
     var accumulatedMatchWinPercentage = 0;
     _.each(results, function(result) {
@@ -82,7 +80,7 @@ define(['foliage',
       (accumulatedMatchWinPercentage / numOpponents).toFixed(2);
   };
 
-  function opponentsGameWinPercentage(results) {
+  var opponentsGameWinPercentage = function (results) {
     var numOpponents = 0;
     var accumulatedGameWinPercentage = 0;
     _.each(results, function(result) {
@@ -97,7 +95,7 @@ define(['foliage',
       (accumulatedGameWinPercentage / numOpponents).toFixed(2);
   };
 
-  function matchLog(results) {
+  var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
       if(result.opponent) {
@@ -206,7 +204,7 @@ define(['foliage',
                })) : f.div();
   }
 
-  function opponentName(player2) {
+  var opponentName = function (player2) {
     return player2 ? player2.name : '- Bye -';
   };
 
@@ -427,26 +425,25 @@ define(['foliage',
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
-                   f.div({'class':'row'},
-                         f.div({'class':'span4'}, 
-                               f.input('#player_name', {'type': 'text', 
-                                                        'placeholder':'Player name'}, bus.expose,
-                                       on.keypress(function(event) {
-                                         if(event.keyCode === 13 || event.keyCode === 10) {
-                                           addPlayer({name:bus.player_name(),
-                                                      results:[],
-                                                      resultStream:phloem.stream()});
-                                           $('#player_name').select();
-                                         }})))),
-                   f.div({'class':'row'},
-                         f.div({'class':'span1'}, 
+                   f.div('.row', f.div('.span4', 
+                                       f.input('#player_name', {'type': 'text', 
+                                                                'placeholder':'Player name'}, bus.expose,
+                                               on.keypress(function(event) {
+                                                 if(event.keyCode === 13 || event.keyCode === 10) {
+                                                   addPlayer({name:bus.player_name(),
+                                                              results:[],
+                                                              resultStream:phloem.stream()});
+                                                   $('#player_name').select();
+                                                 }})))),
+                   f.div('.row',
+                         f.div('.span1', 
                                f.img('#randomize_button', '.btn', {'src':'../img/media-shuffle.png'},
                                      tooltip('Randomize Seating for Draft'),
                                      on.click(function(){
                                        players = _.shuffle(players);
                                        playerStream.push(players);
                                      }))),
-                         f.div(f.button('btn span3', 'Pair for Round One',
+                         f.div(f.button('.btn span3', 'Pair for Round One',
                                         on.click(function(){
                                           $('#newplayer').fadeOut();
                                           pairForRoundOne(players)  
@@ -479,35 +476,34 @@ define(['foliage',
             return f.div();
           }),
     f.div('#players',
-          f.div('#players_header', {'class':'row'},
-                f.span('', {'class':'span1'}),
-                f.span('Player', {'class':'span2'}), 
-                f.span('Points', {'class':'span1'}),
-                f.span('OMP', {'class':'span1'},
+          f.div('#players_header', '.row',
+                f.span('.span1', ''),
+                f.span('.span2', 'Player'), 
+                f.span('.span1', 'Points'),
+                f.span('.span1', 'OMP',
                        tooltip('Average Match Win Percentage of Played Opponents')),
-                f.span('GWP', {'class':'span1'},
+                f.span('.span1', 'GWP',
                        tooltip('Players Game Win Percentage')),
-                f.span('OGP', {'class':'span1'},
+                f.span('.span1', 'OGP',
                        tooltip('Average Game Win Percentage of Played Opponents')),
-                f.span('Match Log', {'class':'span5'})),
+                f.span('.span5', 'Match Log')),
           b.bind(playerStream.read,
                  function(currentPlayers) {
                    return f.div(_.map(currentPlayers, function(player) {
-                     return f.div({'class':'row'}, 
+                     return f.div('.row', 
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
                                     if(!tournamentStarted()) {
                                       $(this).find('.deleteButton').toggle()};
                                   }),
-                                  f.div({'class':'span1'}, f.button('x', {'class':'deleteButton',
-                                                                          'style':'display:none'},
-                                                                    tooltip('Click to Delete Player'),
-                                                                    on.click(function() {
-                                                                      if(!tournamentStarted()) {
-                                                                        players = _.without(players, player);
+                                  f.div('.span1', f.button('.deleteButton', 'x', {'style':'display:none'},
+                                                           tooltip('Click to Delete Player'),
+                                                           on.click(function() {
+                                                             if(!tournamentStarted()) {
+                                                               players = _.without(players, player);
                                                                         playerStream.push(players)};
-                                                                    }))),
-                                  f.span(player.name, {'class':'span2'}), 
+                                                           }))),
+                                  f.span('.span2', player.name), 
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(matchPoints(results));
