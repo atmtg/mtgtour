@@ -2,7 +2,7 @@ var config = module.exports;
 
 config["browser tests"] = {
     environment: "browser",
-    sources: ["js/index.js",
+    sources: ["js/*.js",
               "modules/foliage/foliage*.js",
               "modules/phloem/phloem.js",
               "modules/lodash/lodash.js",

@@ -2,12 +2,14 @@ define(['foliage',
         'bud', 
         'phloem', 
         'lodash', 
-        'foliage/foliage-event'], 
+        'foliage/foliage-event',
+        'statistics'], 
        function(f, 
          b, 
          phloem, 
          _, 
-         on) {
+         on,
+         stats) {
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
@@ -42,58 +44,12 @@ define(['foliage',
     players = players.concat([player]);
     playerStream.push(players);
   };
-
-  var matchPoints = function(results) {
-    return _.reduce(results, function(acc, val) {
-      if(val.wins > val.loss) return acc + 3;
-      if(val.wins == val.loss) return acc + 1;
-      return acc}, 0)
-  };
-
-  var matchWinPercentage = function (results) {
-    var playersMatchPoints = matchPoints(results);
-    
-    return results ? (Math.max((playersMatchPoints/(results.length * 3)), 0.33) * 100).toFixed(2) : 0;
-  };
-
-  var gameWinPercentage = function (results) {
-    var winsAndTotal = _.reduce(results, function(acc, val) {
-      acc.wins += (val.wins * 3);
-      acc.total += val.wins + val.loss;
-      return acc}, {wins:0, total:0})
-
-    return winsAndTotal.total == 0 ? (0).toFixed(2) : 
-      ((winsAndTotal.wins / (winsAndTotal.total * 3)) * 100).toFixed(2);
-  };
          
-  var opponentsMatchWinPercentage = function (results) {
-    var numOpponents = 0;
-    var accumulatedMatchWinPercentage = 0;
-    _.each(results, function(result) {
-      if(result.opponent) {
-        accumulatedMatchWinPercentage = matchWinPercentage(result.opponent.results);
-        numOpponents++;
-      };
-    });
-
-    return numOpponents == 0 ? (0).toFixed(2) : 
-      (accumulatedMatchWinPercentage / numOpponents).toFixed(2);
-  };
-
-  var opponentsGameWinPercentage = function (results) {
-    var numOpponents = 0;
-    var accumulatedGameWinPercentage = 0;
-    _.each(results, function(result) {
-      if(result.opponent) {
-        accumulatedGameWinPercentage = 
-          Math.max(gameWinPercentage(result.opponent.results), 33.00);
-        numOpponents++;
-      };
-    });
-
-    return numOpponents == 0 ? (0).toFixed(2) :
-      (accumulatedGameWinPercentage / numOpponents).toFixed(2);
-  };
+  var matchPoints = stats.matchPoints;
+  var matchWinPercentage = stats.matchWinPercentage; 
+  var gameWinPercentage = stats.gameWinPercentage;
+  var opponentsMatchWinPercentage = stats.opponentsMatchWinPercentage;
+  var opponentsGameWinPercentage = stats.opponentsGameWinPercentage;
 
   var matchLog = function (results) {
     var matchLogString = '';
@@ -262,7 +218,7 @@ define(['foliage',
                            return f.div('.matchResult', 
                                         f.span(report));
                          })),
-                   f.div('buttonPanel', {'style':'display:none'},
+                   f.div('.buttonPanel', {'style':'display:none'},
                          f.button('.btn', '2-0', on.click(function(){
                            registerMatchResult(player1, player2, 2, 0, match);})),
                          f.button('.btn', '2-1', on.click(function(){
