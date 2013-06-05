@@ -3,25 +3,27 @@ define(['foliage',
         'phloem', 
         'lodash', 
         'foliage/foliage-event',
-        'statistics'], 
+        'statistics',
+        'pairing'], 
        function(f, 
          b, 
          phloem, 
          _, 
          on,
-         stats) {
+         stats,
+         pair) {
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
-  var matches = [], players = [];
+  var players = [];
   var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
   
   var roundTimerId, roundNumber = 1;
   var playerSelected;
 
-  matchStream.push(matches);
+  matchStream.push([]);
   playerStream.push(players);
 
   var tooltip = function(text) {
@@ -32,13 +34,13 @@ define(['foliage',
     }
   }
 
-  function tournamentStarted() {
+  var tournamentStarted = function() {
     return matches.length != 0;
   };
 
-  function roundTimerRunning() {
+  var roundTimerRunning = function() {
     return roundTimerId != undefined;
-  }
+  };
 
   function addPlayer(player) {
     players = players.concat([player]);
@@ -118,7 +120,10 @@ define(['foliage',
         allMatchesFinished &= (match.result.length > 0);
       })
 
-      roundReportStream.push({time:timeLeft, roundFinished:allMatchesFinished, tournamentResult:undefined})
+      roundReportStream.push({time:timeLeft, 
+                              roundFinished:allMatchesFinished, 
+                              tournamentResult:undefined,
+                              matches:matches})
     }, 1000);
   }
 
@@ -156,7 +161,7 @@ define(['foliage',
                  $(this).fadeOut();
                  window.clearInterval(roundTimerId);
                  roundTimerId = undefined;
-                 reportResultsAndPairForNextRound(matches, players);
+                 reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
   }
 
@@ -164,7 +169,7 @@ define(['foliage',
     return player2 ? player2.name : '- Bye -';
   };
 
-  function cleanUpMatch(match) {
+  function cleanUpMatch(matches, match) {
     if(!match.players[0] && !match.players[1]) {
       matches.splice(match, 1);
     }
@@ -175,7 +180,7 @@ define(['foliage',
     }
   };
 
-  function onClickSelectOrMove(match, playerIndex) {
+  function onClickSelectOrMove(matches, match, playerIndex) {
     return on.click(function() {
       if(!roundTimerRunning()) {
         if(playerSelected) {
@@ -183,8 +188,8 @@ define(['foliage',
           match.players[playerIndex] = playerSelected.theMatch.players[playerSelected.thePlayerIndex];
           playerSelected.theMatch.players[playerSelected.thePlayerIndex] = tempPlayer;
           
-          cleanUpMatch(match);
-          cleanUpMatch(playerSelected.theMatch);
+          cleanUpMatch(matches, match);
+          cleanUpMatch(matches, playerSelected.theMatch);
           
           playerSelected = undefined;
           matchStream.push(matches);
@@ -211,7 +216,7 @@ define(['foliage',
                      }
                    }),
                    f.div(f.div('.matchTableSurface'),
-                         f.p('.playerName', player1.name, onClickSelectOrMove(match, 0)),
+                         f.p('.playerName', player1.name, onClickSelectOrMove(matches, match, 0)),
                          f.p('.player2 playerName', opponentName(player2), 
                              onClickSelectOrMove(match, 1)),
                          b.bind(match.reportStream.read, function(report) {
@@ -231,118 +236,6 @@ define(['foliage',
                            registerMatchResult(player1, player2, 0, 2, match);})))
                   )})
                 )};
-
-  function pairForRoundOne(players) {
-    var firstHalf = players.slice(0,Math.ceil(players.length/2));
-    var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
-    var pairings = _.zip(firstHalf, secondHalf);
-    matches = _.map(pairings, function(pairing) {
-      return {players:pairing, reportStream:phloem.stream(), result:[]};
-    });
-    matchStream.push(matches);
-  };
-
-  function maxPoints(array, optionalFilter) {
-    var max = -1, maxIndex = -1;
-    for(var i = 0; i<array.length; i++) {
-      if(optionalFilter && !_.contains(optionalFilter, i)) continue;
-
-      if(parseInt(array[i].points, 10) > max) {
-        max = array[i].points;
-        maxIndex = i;
-      }
-    }
-    return maxIndex;
-  };
-
-  function matchesPlayed(player1, player2) {
-    return _.reduce(player2.results, function(acc, result) {
-      if(result.opponent && result.opponent == player1) 
-        return acc + 1;
-      return acc;
-    }, 0)
-  };
-
-  function leastFrequentOpponents(playersAndPoints, player) {
-    var numMatchesPlayed = 0;
-    var playersFaced = [];
-    while(playersFaced.length == 0) {
-      for(var i = 0; i<playersAndPoints.length; i++) {
-        if(matchesPlayed(playersAndPoints[i].thePlayer, player) == numMatchesPlayed) {
-          playersFaced = playersFaced.concat(i);
-        }
-      }
-      numMatchesPlayed++;
-    }
-    return playersFaced;
-  };
-
-  function calculateByes(results) {
-    var byes = _.reduce(results, function(acc, result) {
-      if(result.opponent) {
-        return acc;
-      }
-      return acc + 1;
-    }, 0)
-
-    return byes;
-  };
-
-  function playersWithMinByes(playersAndPoints) {
-    var minByes = _.min(playersAndPoints, function(playerAndPoint) {
-      return playerAndPoint.byes;
-    });
-    
-    var indexes = [];
-    for(var i = 0; i<playersAndPoints.length; i++) {
-      if(playersAndPoints[i].byes == minByes.byes)
-        indexes = indexes.concat(i);
-    };
-    return indexes;
-  };
-
-  function pairForConsecutiveRound(players) {
-    var players = _.shuffle(players);
-
-    var playersAndPoints = [];
-    _.map(players, function(player) {
-      playersAndPoints = 
-        playersAndPoints.concat([{thePlayer:player, 
-                                  points:matchPoints(player.results),
-                                  byes:calculateByes(player.results)}]);
-    });
-    
-    matches = [];
-    var byeGiven = playersAndPoints.length%2 == 0;
-    while(playersAndPoints.length > 0) {
-      var listOfPlayersWithMinByes = playersWithMinByes(playersAndPoints);
-      if(!byeGiven && ((playersAndPoints.length%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
-                       (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
-        matches = matches.concat([{players:[playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
-                                            undefined], 
-                                   reportStream:phloem.stream(),
-                                   result:[]}]);
-        playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
-        byeGiven = true;
-        continue;
-      } 
-
-      var indexOfPlayer1 = maxPoints(playersAndPoints);
-      var ply1 = playersAndPoints[indexOfPlayer1].thePlayer;
-      playersAndPoints.splice(indexOfPlayer1, 1);
-
-      var leastFrequentOpponentIndexes = leastFrequentOpponents(playersAndPoints, ply1)
-      var indexOfPlayer2 = maxPoints(playersAndPoints, leastFrequentOpponentIndexes);
-      var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
-      playersAndPoints.splice(indexOfPlayer2, 1);
-
-      matches = matches.concat([{players:[ply1, ply2], 
-                                 reportStream:phloem.stream(), 
-                                 result:[]}]);
-    };
-
-    matchStream.push(matches);
-  };
 
   function reportResultsAndPairForNextRound(matches, players) {
     _.map(matches, function(match) {
@@ -368,7 +261,7 @@ define(['foliage',
     
     if(roundNumber < NUM_ROUNDS) {
       roundNumber++;
-      pairForConsecutiveRound(players);
+      pair.forNextRound(players, matchStream);
     } else {
       matches = [];
       matchStream.push(matches);
@@ -402,7 +295,7 @@ define(['foliage',
                          f.div(f.button('.btn span3', 'Pair for Round One',
                                         on.click(function(){
                                           $('#newplayer').fadeOut();
-                                          pairForRoundOne(players)  
+                                          pair.forFirstRound(players, matchStream);  
                                         })))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
