@@ -130,7 +130,8 @@ define(['foliage',
   function roundReportPanel(roundReport) {
     if(typeof roundReport == 'undefined' || roundReport.tournamentResult) return f.div();
 
-    var minutes = Math.floor(roundReport.time/60);
+    var minutes = roundReport.time/60 < 10 ? '0' + 
+      Math.floor(roundReport.time/60) : Math.floor(roundReport.time/60);
     var seconds = roundReport.time%60 < 10 ? '0' + 
       roundReport.time%60 : roundReport.time%60;
       
@@ -138,7 +139,11 @@ define(['foliage',
                  f.div('#roundTitle', f.span('Round ' + roundNumber)),
                  f.div('#roundTimer', 
                        f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                              {'class': roundReport.time <= 0 ? 'timerEnded' : ''})));
+                              {'class': roundReport.time <= 0 ? 'timerEnded' : ''}),
+                       f.div('.progress progress-striped',
+                             {'class':roundReport.time < 180 ? 'progress-danger' : 
+                              roundReport.time < 600 ? 'progress-warning' : 'progress-success'},
+                             f.div('.bar', {'style':'width:' + (roundReport.time/ROUND_TIME)*100 + '%' }))));
   }
 
   function buttonToStartRound(matches) {
