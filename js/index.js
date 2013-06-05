@@ -34,10 +34,6 @@ define(['foliage',
     }
   }
 
-  var tournamentStarted = function() {
-    return matches.length != 0;
-  };
-
   var roundTimerRunning = function() {
     return roundTimerId != undefined;
   };
@@ -223,7 +219,7 @@ define(['foliage',
                    f.div(f.div('.matchTableSurface'),
                          f.p('.playerName', player1.name, onClickSelectOrMove(matches, match, 0)),
                          f.p('.player2 playerName', opponentName(player2), 
-                             onClickSelectOrMove(match, 1)),
+                             onClickSelectOrMove(matches, match, 1)),
                          b.bind(match.reportStream.read, function(report) {
                            return f.div('.matchResult', 
                                         f.span(report));
@@ -347,16 +343,21 @@ define(['foliage',
                      return f.div('.row', 
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
-                                    if(!tournamentStarted()) {
+                                    if(!roundTimerRunning()) {
                                       $(this).find('.deleteButton').toggle()};
                                   }),
-                                  f.div('.span1', f.button('.deleteButton', 'x', {'style':'display:none'},
-                                                           tooltip('Click to Delete Player'),
-                                                           on.click(function() {
-                                                             if(!tournamentStarted()) {
-                                                               players = _.without(players, player);
-                                                                        playerStream.push(players)};
-                                                           }))),
+                                  f.span('.span1',
+                                         b.bind(matchStream.read, function(matches) {
+                                           if(matches && matches.length > 0)
+                                             return f.div('.span1');
+                                           return f.div('.span1', 
+                                                        f.button('.deleteButton', 'x', {'style':'display:none'},
+                                                                 tooltip('Click to Delete Player'),
+                                                                 on.click(function() {
+                                                                   players = _.without(players, player);
+                                                                   playerStream.push(players);
+                                                                 })))
+                                         })),
                                   f.span('.span2', player.name), 
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
