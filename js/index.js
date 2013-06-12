@@ -287,7 +287,7 @@ define(['foliage',
                                                  }})))),
                    f.div('.row',
                          f.div('.span1', 
-                               f.img('#randomize_button', '.btn', {'src':'../img/media-shuffle.png'},
+                               f.img('#randomize_button', '.btn', {'src':'img/media-shuffle.png'},
                                      tooltip('Randomize Seating for Draft'),
                                      on.click(function(){
                                        players = _.shuffle(players);
