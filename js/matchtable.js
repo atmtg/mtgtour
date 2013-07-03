@@ -43,7 +43,9 @@ define(['foliage',
                          f.p('.player1 playerName', player1.name, onClickSelectOrMove(matchStream, matches, match, 0)),
                          f.p('.player2 playerName', opponentName(player2), 
                              onClickSelectOrMove(matchStream, matches, match, 1)),
+                         f.p("hello"),
                          b.bind(match.reportStream.read, function(report) {
+                           console.log("report: ", report);
                            return f.div('.matchResult', 
                                         f.span(report));
                          })),

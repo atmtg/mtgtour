@@ -1,14 +1,14 @@
 define(
-    ['buster',
-     'matchtable', 
+    ['matchtable', 
      'jquery',
      'foliage',
-     'phloem'],
-    function(buster, 
-             matchtable, 
+     'phloem',
+    'bud'],
+    function( matchtable, 
              $,
              f,
-             phloem) {
+             phloem,
+             b) {
         
         var assert = buster.assert;
         
@@ -19,6 +19,10 @@ define(
         function setUpTable(match, running) {
             var parent = $('<div />');
             matchtable(undefined, undefined, match, function(){return running;}, tooltip)(parent);
+
+            b.bind(match.reportStream.read, function(report) {
+                console.log("the report ", report);
+            })(parent);
             return parent;
         }
 
@@ -32,7 +36,25 @@ define(
                 var tableParent = setUpTable(match, false);
 
                 assert.equals($('.player2', tableParent).text().trim(), '- Bye -');
-                
+            },
+            'when result is reported for match it is visible on table' : function(done) {
+                var reportStream = phloem.stream();
+                var match =  {
+                    players: [{name: 'Marshall'}, {name: 'Brian'}],
+                    reportStream: reportStream
+                };
+
+                var tableParent = setUpTable(match, false);
+                reportStream.push('result');
+
+                phloem.each(reportStream.read, function(val) {
+                    if(val){
+                        assert.equals($('.matchResult span', tableParent).text().trim(), 'result');
+                        done();
+                    }
+                });
             }
+
         });
     });
+
