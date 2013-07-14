@@ -72,6 +72,9 @@ define(
                                                {wins:0, loss:2},
                                                {wins:1, loss:2}]), 27.27);
       },
+      'gameWinPercentage: DrawnGames are taken into account' : function() {
+        assert.equals(stats.gameWinPercentage([{wins:1, loss:1, draws:1}]), 44.44);
+      },
       'opponentsMatchWinPercentage: DCI scenario 1' : function() {
         assert.equals(stats.opponentsMatchWinPercentage([{opponent:{results:[{wins:2, loss:0}, 
                                                                              {wins:2, loss:1},

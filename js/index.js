@@ -56,7 +56,7 @@ define(['foliage',
     _.each(results, function(result) {
       if(result.opponent) {
         matchLogString += result.opponent.name + ' (' + 
-          result.wins + '-' + result.loss + '), '
+          result.wins + '-' + result.loss + (result.draws ? '-'+result.draws : '') + '), '
       } else {
         matchLogString += '- Bye -, ';
       }
@@ -101,7 +101,7 @@ define(['foliage',
       
       var allMatchesFinished = true;
       _.map(matches, function(match) {
-        allMatchesFinished &= (match.result.length > 0);
+        allMatchesFinished &= (match.result !== undefined);
       })
 
       roundReportStream.push({time:timeLeft, 
@@ -176,16 +176,19 @@ define(['foliage',
     _.map(matches, function(match) {
       var player1 = match.players[0];
       var player2 = match.players[1];
-      var player1Games = match.result[0].games1;
-      var player2Games = match.result[0].games2;
+      var player1Games = match.result.games1;
+      var player2Games = match.result.games2;
+      var drawnGames = match.result.draws;
 
       player1.results = player1.results.concat([{wins:player1Games, 
                                                  loss:player2Games, 
+                                                 draws:drawnGames,
                                                  opponent:player2}]);
       player1.resultStream.push(player1.results)
       if(player2) {
         player2.results = player2.results.concat([{wins:player2Games, 
                                                    loss:player1Games,
+                                                   draws: drawnGames,
                                                    opponent:player1}]);
         player2.resultStream.push(player2.results)
       }

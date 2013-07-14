@@ -16,6 +16,10 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
           match.result = {games1:player1Games, games2:player2Games};
           match.reportStream.push(match.result);
       };
+      match.registerDraw =  function (drawnGames) {
+          match.result.draws = drawnGames;
+          match.reportStream.push(match.result);
+      };
       return match;
   };
 
