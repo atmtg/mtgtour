@@ -57,14 +57,14 @@ define(['foliage',
                                           var player2 = match.players[1];
                                           var player1Games = results.games1;
                                           var player2Games = results.games2;
-
                                           if(player2) {
-                                              if(player1Games == player2Games) 
+                                              if(player1Games == player2Games) {
                                                   reportString = 'Draw';
-                                              if(player1Games > player2Games) 
-                                                  reportString = player1.name + ' wins <br>' + player1Games + ' - ' + player2Games;
-                                              if(player2Games > player1Games)
-                                                  reportString = player2.name + ' wins <br>' + player2Games + ' - ' + player1Games;
+                                              }
+                                              else {
+                                                  reportString = player1Games + ' - ' + player2Games;
+                                              }
+
                                           } else {
                                               reportString = player1.name + ' receives a bye';
                                           }
