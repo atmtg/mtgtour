@@ -4,14 +4,16 @@ define(['foliage',
         'lodash', 
         'foliage/foliage-event',
         'statistics',
-        'pairing'], 
+        'pairing',
+        'matchtable'], 
        function(f, 
          b, 
          phloem, 
          _, 
          on,
          stats,
-         pair) {
+         pair,
+         matchTable) {
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
@@ -54,28 +56,13 @@ define(['foliage',
     _.each(results, function(result) {
       if(result.opponent) {
         matchLogString += result.opponent.name + ' (' + 
-          result.wins + '-' + result.loss + '), '
+          result.wins + '-' + result.loss + (result.draws ? '-'+result.draws : '') + '), '
       } else {
         matchLogString += '- Bye -, ';
       }
     });
     return matchLogString;
   }
-
-  function registerMatchResult(player1, player2, player1Games, player2Games, match) {
-    match.result = [{games1:player1Games, games2:player2Games}];
-          
-    if(player2) {
-      if(player1Games == player2Games) 
-        match.reportStream.push('Draw');
-      if(player1Games > player2Games) 
-        match.reportStream.push(player1.name + ' wins <br>' + player1Games + ' - ' + player2Games);
-      if(player2Games > player1Games)
-        match.reportStream.push(player2.name + ' wins <br>' + player2Games + ' - ' + player1Games);
-    } else {
-      match.reportStream.push(player1.name + ' receives a bye');
-    }
-  };
 
   function sortPlayers(players) {
     players.sort(function(a, b) {
@@ -102,8 +89,9 @@ define(['foliage',
 
   function handleRound(matches) {
     _.each(matches, function(match) {
-      if(!match.players[1])
-        registerMatchResult(match.players[0], match.players[1], 2, 0, match);
+      if(!match.players[1]) {
+        match.registerResult( 2, 0);
+      }
     })
 
     var start = new Date().getTime();
@@ -113,7 +101,7 @@ define(['foliage',
       
       var allMatchesFinished = true;
       _.map(matches, function(match) {
-        allMatchesFinished &= (match.result.length > 0);
+        allMatchesFinished &= (match.result !== undefined);
       })
 
       roundReportStream.push({time:timeLeft, 
@@ -166,10 +154,6 @@ define(['foliage',
                })) : f.div();
   }
 
-  var opponentName = function (player2) {
-    return player2 ? player2.name : '- Bye -';
-  };
-
   function cleanUpMatch(matches, match) {
     if(!match.players[0] && !match.players[1]) {
       matches.splice(match, 1);
@@ -181,77 +165,30 @@ define(['foliage',
     }
   };
 
-  function onClickSelectOrMove(matches, match, playerIndex) {
-    return on.click(function() {
-      if(!roundTimerRunning()) {
-        if(playerSelected) {
-          var tempPlayer = match.players[playerIndex];
-          match.players[playerIndex] = playerSelected.theMatch.players[playerSelected.thePlayerIndex];
-          playerSelected.theMatch.players[playerSelected.thePlayerIndex] = tempPlayer;
-          
-          cleanUpMatch(matches, match);
-          cleanUpMatch(matches, playerSelected.theMatch);
-          
-          playerSelected = undefined;
-          matchStream.push(matches);
-        } else {
-          playerSelected = {theMatch:match, thePlayerIndex:playerIndex};
-        } 
-        $(this).toggleClass('selected');
-      }
-    });
-  };
-
   function createMatchTables(matches) {
     var tableCount = 1;
 
     return f.div('#matchboard', _.map(matches, function(match) {
-      var player1 = match.players[0];
-      var player2 = match.players[1];
-
-      return f.div('#table' + tableCount++, {'class':'matchtable span3'},
-                   tooltip('Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'),
-                   on.click(function(){
-                     if(player2 && roundTimerRunning()) {
-                       $(this).find('.buttonPanel').fadeToggle();
-                     }
-                   }),
-                   f.div(f.div('.matchTableSurface'),
-                         f.p('.playerName', player1.name, onClickSelectOrMove(matches, match, 0)),
-                         f.p('.player2 playerName', opponentName(player2), 
-                             onClickSelectOrMove(matches, match, 1)),
-                         b.bind(match.reportStream.read, function(report) {
-                           return f.div('.matchResult', 
-                                        f.span(report));
-                         })),
-                   f.div('.buttonPanel', {'style':'display:none'},
-                         f.button('.btn', '2-0', on.click(function(){
-                           registerMatchResult(player1, player2, 2, 0, match);})),
-                         f.button('.btn', '2-1', on.click(function(){
-                           registerMatchResult(player1, player2, 2, 1, match);})),
-                         f.button('.btn', '1-1', on.click(function(){
-                           registerMatchResult(player1, player2, 1, 1, match);})),
-                         f.button('.btn', '1-2', on.click(function(){
-                           registerMatchResult(player1, player2, 1, 2, match);})),
-                         f.button('.btn', '0-2', on.click(function(){
-                           registerMatchResult(player1, player2, 0, 2, match);})))
-                  )})
-                )};
+      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip)})
+   )};
 
   function reportResultsAndPairForNextRound(matches, players) {
     _.map(matches, function(match) {
       var player1 = match.players[0];
       var player2 = match.players[1];
-      var player1Games = match.result[0].games1;
-      var player2Games = match.result[0].games2;
+      var player1Games = match.result.games1;
+      var player2Games = match.result.games2;
+      var drawnGames = match.result.draws;
 
       player1.results = player1.results.concat([{wins:player1Games, 
                                                  loss:player2Games, 
+                                                 draws:drawnGames,
                                                  opponent:player2}]);
       player1.resultStream.push(player1.results)
       if(player2) {
         player2.results = player2.results.concat([{wins:player2Games, 
                                                    loss:player1Games,
+                                                   draws: drawnGames,
                                                    opponent:player1}]);
         player2.resultStream.push(player2.results)
       }
@@ -287,7 +224,7 @@ define(['foliage',
                                                  }})))),
                    f.div('.row',
                          f.div('.span1', 
-                               f.img('#randomize_button', '.btn', {'src':'../img/media-shuffle.png'},
+                               f.img('#randomize_button', '.btn', {'src':'img/media-shuffle.png'},
                                      tooltip('Randomize Seating for Draft'),
                                      on.click(function(){
                                        players = _.shuffle(players);

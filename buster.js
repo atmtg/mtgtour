@@ -5,8 +5,10 @@ config["browser tests"] = {
     sources: ["js/*.js",
               "modules/foliage/foliage*.js",
               "modules/phloem/phloem.js",
+              "modules/blossom/blossom.js",
               "modules/lodash/lodash.js",
-              "modules/when/**/*.js"
+              "modules/bud/bud.js",
+              "modules/when/when.js"
              ],
     tests: ["test/*.js"],
     libs: ["modules/curl/src/curl.js",
