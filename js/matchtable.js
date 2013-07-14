@@ -8,12 +8,6 @@ define(['foliage',
                return player2 ? player2.name : '- Bye -';
            };
 
-           function registerMatchResult(player1Games, player2Games, match) {
-               match.result = {games1:player1Games, games2:player2Games};
-               
-               match.reportStream.push(match.result);
-           };
-
            function onClickSelectOrMove(matchStream, matches, match, playerIndex) {
                return on.click(function() {
                    if(!roundTimerRunning()) {
@@ -53,21 +47,7 @@ define(['foliage',
                                       var reportString = "";
 
                                       if(results) {
-                                          var player1 = match.players[0];
-                                          var player2 = match.players[1];
-                                          var player1Games = results.games1;
-                                          var player2Games = results.games2;
-                                          if(player2) {
-                                              if(player1Games == player2Games) {
-                                                  reportString = 'Draw';
-                                              }
-                                              else {
-                                                  reportString = player1Games + ' - ' + player2Games;
-                                              }
-
-                                          } else {
-                                              reportString = player1.name + ' receives a bye';
-                                          }
+                                          reportString =  results.games1 + ' - ' + results.games2;
                                       }
                                       return f.div('.matchResult', 
                                                    f.span(reportString));
@@ -75,14 +55,14 @@ define(['foliage',
                                   })),
                             f.div('.buttonPanel', {'style':'display:none'},
                                   f.button('.btn', '2-0', on.click(function(){
-                                      registerMatchResult( 2, 0, match);})),
+                                      match.registerResult( 2, 0);})),
                                   f.button('.btn', '2-1', on.click(function(){
-                                      registerMatchResult( 2, 1, match);})),
+                                      match.registerResult( 2, 1);})),
                                   f.button('.btn', '1-1', on.click(function(){
-                                      registerMatchResult( 1, 1, match);})),
+                                      match.registerResult( 1, 1);})),
                                   f.button('.btn', '1-2', on.click(function(){
-                                      registerMatchResult( 1, 2, match);})),
+                                      match.registerResult( 1, 2);})),
                                   f.button('.btn', '0-2', on.click(function(){
-                                      registerMatchResult( 0, 2, match);}))));
+                                      match.registerResult( 0, 2);}))));
            };
        });

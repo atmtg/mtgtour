@@ -89,8 +89,9 @@ define(['foliage',
 
   function handleRound(matches) {
     _.each(matches, function(match) {
-      if(!match.players[1])
-        registerMatchResult(match.players[0], match.players[1], 2, 0, match);
+      if(!match.players[1]) {
+        match.registerResult( 2, 0);
+      }
     })
 
     var start = new Date().getTime();
