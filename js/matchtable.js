@@ -32,6 +32,7 @@ define(['foliage',
            return function(matchStream, matches, match, roundTimerRunning, tooltip) {
                var player1 = match.players[0];
                var player2 = match.players[1];
+               var currentResult = {games1:0, games2:0};
                return f.div('#table', {'class':'matchtable span3'},
                             tooltip('Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'),
                             on.click(function(){
@@ -45,9 +46,12 @@ define(['foliage',
                                       onClickSelectOrMove(matchStream, matches, match, 1)),
                                   b.bind(match.reportStream.read, function(results) {
                                       var reportString = "";
-
+                                     
                                       if(results) {
-                                          reportString =  results.games1 + ' - ' + results.games2;
+                                          currentResult = results;
+                                          reportString =  results.games1 + ' - ' + 
+                                                          results.games2 + 
+                                                          (results.draws  ? ' - ' + results.draws : '');
                                       }
                                       return f.div('.matchResult', 
                                                    f.span(reportString));
@@ -58,11 +62,23 @@ define(['foliage',
                                       match.registerResult( 2, 0);})),
                                   f.button('.btn', '2-1', on.click(function(){
                                       match.registerResult( 2, 1);})),
+                                  f.button('.btn', '1-0', on.click(function(){
+                                      match.registerResult( 1, 0);})),
                                   f.button('.btn', '1-1', on.click(function(){
                                       match.registerResult( 1, 1);})),
+                                  f.button('.btn', '0-0', on.click(function(){
+                                      match.registerResult( 0, 0);})),
+                                  f.button('.btn', '0-1', on.click(function(){
+                                      match.registerResult( 0, 1);})),
                                   f.button('.btn', '1-2', on.click(function(){
                                       match.registerResult( 1, 2);})),
                                   f.button('.btn', '0-2', on.click(function(){
-                                      match.registerResult( 0, 2);}))));
+                                      match.registerResult( 0, 2);})),
+                                  f.button('.btn', 'x-y-1', on.click(function(){
+                                      match.registerDraw(1);})),
+                                  f.button('.btn', 'x-y-2', on.click(function(){
+                                      match.registerDraw(2);})),
+                                  f.button('.btn', 'x-y-3', on.click(function(){
+                                      match.registerDraw(3);}))));
            };
        });

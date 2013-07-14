@@ -101,7 +101,7 @@ define(['foliage',
       
       var allMatchesFinished = true;
       _.map(matches, function(match) {
-        allMatchesFinished &= (match.result.length > 0);
+        allMatchesFinished &= (match.result !== undefined);
       })
 
       roundReportStream.push({time:timeLeft, 
@@ -176,8 +176,8 @@ define(['foliage',
     _.map(matches, function(match) {
       var player1 = match.players[0];
       var player2 = match.players[1];
-      var player1Games = match.result[0].games1;
-      var player2Games = match.result[0].games2;
+      var player1Games = match.result.games1;
+      var player2Games = match.result.games2;
 
       player1.results = player1.results.concat([{wins:player1Games, 
                                                  loss:player2Games, 

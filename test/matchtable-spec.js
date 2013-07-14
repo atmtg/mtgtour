@@ -58,7 +58,7 @@ define(
             'presents scores when player1 wins and no draws' : resultPresentation({games1: 2, games2: 1}, '2 - 1'),
             'presents scores when tied game and no draws' : resultPresentation({games1: 1, games2: 1}, '1 - 1'),
             'presents scores when player2 wins and no draws' : resultPresentation({games1: 1, games2: 2}, '1 - 2'),
-            'presents scores and draws when draws' : resultPresentation({games1: 1, games2: 2}, '1 - 2')
+            'presents scores and draws when draws' : resultPresentation({games1: 1, games2: 1, draws:1}, '1 - 1 - 1')
         });
     });
 
