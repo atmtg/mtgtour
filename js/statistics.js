@@ -16,8 +16,9 @@ define(['lodash'], function(_) {
   
   var gameWinPercentage = function (results) {
     var winsAndTotal = _.reduce(results, function(acc, val) {
-      acc.points += (val.wins * 3);
-      acc.total += val.wins + val.loss;
+      var draws = (val.draws ? val.draws : 0);
+      acc.points += (val.wins * 3) + draws;
+      acc.total += val.wins + val.loss + draws;
       return acc}, {points:0, total:0})
 
     return winsAndTotal.total == 0 ? (0).toFixed(2) : 
