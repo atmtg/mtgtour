@@ -64,21 +64,6 @@ define(['foliage',
     return matchLogString;
   }
 
-  function registerMatchResult(player1, player2, player1Games, player2Games, match) {
-    match.result = [{games1:player1Games, games2:player2Games}];
-          
-    if(player2) {
-      if(player1Games == player2Games) 
-        match.reportStream.push('Draw');
-      if(player1Games > player2Games) 
-        match.reportStream.push(player1.name + ' wins <br>' + player1Games + ' - ' + player2Games);
-      if(player2Games > player1Games)
-        match.reportStream.push(player2.name + ' wins <br>' + player2Games + ' - ' + player1Games);
-    } else {
-      match.reportStream.push(player1.name + ' receives a bye');
-    }
-  };
-
   function sortPlayers(players) {
     players.sort(function(a, b) {
       if(matchPoints(b.results) == matchPoints(a.results)) {

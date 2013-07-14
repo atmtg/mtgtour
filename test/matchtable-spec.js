@@ -19,10 +19,6 @@ define(
         function setUpTable(match, running) {
             var parent = $('<div />');
             matchtable(undefined, undefined, match, function(){return running;}, tooltip)(parent);
-
-            b.bind(match.reportStream.read, function(report) {
-                console.log("the report ", report);
-            })(parent);
             return parent;
         }
 
@@ -45,11 +41,11 @@ define(
                 };
 
                 var tableParent = setUpTable(match, false);
-                reportStream.push('result');
+                reportStream.push({games1:2, games2:1});
 
                 phloem.each(reportStream.read, function(val) {
                     if(val){
-                        assert.equals($('.matchResult span', tableParent).text().trim(), 'result');
+                        assert.equals($('.matchResult span', tableParent).text().trim(), 'Marshall wins 2 - 1');
                         done();
                     }
                 });
