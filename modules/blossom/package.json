@@ -1,0 +1,14 @@
+{
+    "name": "bloossom",
+    "version": "0.0.1",
+    "description": "An AMD approach to styling webpages",
+    "author": { "name": "Joakim Ohlrogge" },
+    "contributors": [{
+        "name": "Joakim Ohlrogge",
+        "url": "https://github.com/johlrogge"
+    }],
+    "devDependencies": {
+        "buster-amd": "*",
+	"buster": "*"
+    }
+}

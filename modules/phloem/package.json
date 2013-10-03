@@ -1,0 +1,21 @@
+{
+  "name": "phloem",
+  "version": "0.0.0",
+  "description": "promise based data structures",
+  "main": "phloem.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "buster test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/herbalism/phloem.git"
+  },
+  "devDependencies": {
+  "buster-amd":"0.3.0"
+  }, 
+  "author": "Joakim Ohlrogge",
+  "license": "BSD"
+}
