@@ -312,7 +312,7 @@ define(['foliage',
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
                                                   return f.span(
-                                                    opponentsMatchWinPercentage(results));
+                                                    opponentsGameWinPercentage(results));
                                                 }), {'class':'span1'}),
                                   f.span(b.bind(player.resultStream.read,
                                                 function(results){
