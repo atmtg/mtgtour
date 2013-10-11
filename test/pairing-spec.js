@@ -1,6 +1,6 @@
 define(
-  ['pairing', 'phloem'],
-  function(pairing, phloem) {
+  ['pairing', 'phloem', 'when'],
+  function(pairing, phloem, when) {
 
     var winAgainst = function(name) {
       return {wins:2, loss:0, opponent:name};};
