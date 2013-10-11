@@ -45,20 +45,52 @@ define(
         }
 
         buster.testCase('matchtable', {
-            'when player2 is absent player1 receives bye' : function() {
-                var match =  {
-                    players: [{name: 'Marshall'}, undefined],
-                    reportStream: phloem.stream()
-                };
-
-                var tableParent = setUpTable(match, false);
-
-                assert.equals($('.player2', tableParent).text().trim(), '- Bye -');
-            },
-            'presents scores when player1 wins and no draws' : resultPresentation({games1: 2, games2: 1}, '2 - 1'),
-            'presents scores when tied game and no draws' : resultPresentation({games1: 1, games2: 1}, '1 - 1'),
-            'presents scores when player2 wins and no draws' : resultPresentation({games1: 1, games2: 2}, '1 - 2'),
-            'presents scores and draws when draws' : resultPresentation({games1: 1, games2: 1, draws:1}, '1 - 1 - 1')
+          'when player2 is absent player1 receives bye' : function() {
+            var match =  {
+              players: [{name: 'Marshall'}, undefined],
+              reportStream: phloem.stream()
+            };
+            
+            var tableParent = setUpTable(match, false);
+            
+            assert.equals($('.player2', tableParent).text().trim(), '- Bye -');
+          },
+          'presents scores when player1 wins and no draws' : resultPresentation({games1: 2, games2: 1}, '2 - 1'),
+          'presents scores when tied game and no draws' : resultPresentation({games1: 1, games2: 1}, '1 - 1'),
+          'presents scores when player2 wins and no draws' : resultPresentation({games1: 1, games2: 2}, '1 - 2'),
+          'presents scores and draws when draws' : resultPresentation({games1: 1, games2: 1, draws:1}, '1 - 1 - 1')
         });
+      buster.testCase('clicking', {
+        'middle of matchtable shows right buttonpanel' : function() {  
+          var match = {
+            players: [{name: 'Marshall'}, {name: 'Bwonger'}],
+            reportStream: phloem.stream()
+          };
+          var tableParent = setUpTable(match, true);
+
+          $('.noMansLand', tableParent).trigger('click');
+          assert.equals($('.rightButtonPanel', tableParent).css('display'), 'block');
+        },
+        'player2s part of table shows bottom buttonpanel' : function() {
+          var match = {
+            players: [{name: 'Marshall'}, {name: 'Bwonger'}],
+            reportStream: phloem.stream()
+          };
+          var tableParent = setUpTable(match, true);
+
+          $('.player2Side', tableParent).trigger('click');
+          assert.equals($('.bottomButtonPanel', tableParent).css('display'), 'block');
+        },
+        'player1s part of table shows top buttonpanel' : function() {
+          var match = {
+            players: [{name: 'Marshall'}, {name: 'Bwonger'}],
+            reportStream: phloem.stream()
+          };
+          var tableParent = setUpTable(match, true);
+
+          $('.player1Side', tableParent).trigger('click');
+          assert.equals($('.topButtonPanel', tableParent).css('display'), 'block');
+        }
+      });
     });
 
