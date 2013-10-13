@@ -18,9 +18,9 @@ define(
       return f.div();
     }
     
-    function setUpTable(match, running, complete) {
+    function setUpTable(match, running, playerSelectionQueue) {
       var parent = $('<div />');
-      matchtable(undefined, undefined, match, function(){return running;}, tooltip, complete)(parent);
+      matchtable(undefined, undefined, match, function(){return running;}, tooltip, playerSelectionQueue)(parent);
       return parent;
     }
     
@@ -111,7 +111,7 @@ define(
           players: [{name: 'Marshall'}, {name: 'Bwonger'}],
           reportStream: phloem.stream()
         };
-        var tableParent = setUpTable(match, false);
+        var tableParent = setUpTable(match, false, phloem.optional());
         $('.player1Side', tableParent).trigger('click');
         assert.isTrue($('.player1', tableParent).hasClass('selected'));
       }

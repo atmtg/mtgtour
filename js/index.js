@@ -21,9 +21,9 @@ define(['foliage',
   var players = [];
   var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
-  
+  var playerSelectedQueue = phloem.queue();
+
   var roundTimerId, roundNumber = 1;
-  var playerSelected;
 
   matchStream.push([]);
   playerStream.push(players);
@@ -169,7 +169,7 @@ define(['foliage',
     var tableCount = 1;
 
     return f.div('#matchboard', _.map(matches, function(match) {
-      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip)})
+      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip, playerSelectedQueue)})
    )};
 
   function reportResultsAndPairForNextRound(matches, players) {
