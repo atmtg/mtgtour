@@ -16,13 +16,13 @@ define(['foliage',
          function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
            return function(event) {
              var changeTo = when.defer();
-             if(!_.isEmpty(playerClicked)){
-                 playerClicked[0].swapTo(match.players[playerIndex]);
-                 match.players[playerIndex] = playerClicked[0].player;
-                 swapPlayerStream.push([]);
+             if(playerClicked){
+                 playerClicked.swapTo(match.players[playerIndex]);
+                 match.players[playerIndex] = playerClicked.player;
+                 swapPlayerStream.push(undefined);
              }
              else {
-                 swapPlayerStream.push([{player:match.players[playerIndex], swapTo:changeTo.resolve}]); 
+                 swapPlayerStream.push({player:match.players[playerIndex], swapTo:changeTo.resolve}); 
                  when(changeTo.promise).then(function(newPlayer){
                      match.players[playerIndex] = newPlayer;
                      $(element).toggleClass('selected');                      
@@ -37,7 +37,7 @@ define(['foliage',
            var player1 = match.players[0];
            var player2 = match.players[1];
            var currentResult = {games1:0, games2:0};
-           var playerClicked = [];
+           var playerClicked;
            phloem.each(swapPlayerStream.read.next(), function(player) {
                playerClicked = player;
            });
