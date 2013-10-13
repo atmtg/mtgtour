@@ -1,36 +1,23 @@
 define(['foliage', 
         'foliage/foliage-event',
-        'bud'],
+        'bud',
+        'when'],
        function(f, 
          on, 
-         b) 
+         b,
+         when) 
 {
          var opponentName = function (player2) {
            return player2 ? player2.name : '- Bye -';
          };
          
-         function selectOrMove(selectionQueue, matchStream, matches, match, playerIndex) {
-           return function() {
-             console.log(selectionQueue)
-             when(selectionQueue.read).then(function() {
-               var selectedPlayer = selectionQueue.read();
-               var tempPlayer = match.players[playerIndex];
-               match.players[playerIndex] = selectedPlayer.theMatch.players[selectedPlayer.thePlayerIndex];
-               selectedPlayer.theMatch.players[selectedPlayer.thePlayerIndex] = tempPlayer;
-               
-               cleanUpMatch(matches, match);
-               cleanUpMatch(matches, selectedPlayer.theMatch);
-               
-               matchStream.push(matches);
-               selectionQueue.clear();
-             }).otherwise(function() {
-               selectionQueue.set({theMatch:match, thePlayerIndex:playerIndex});
-             });
-             $(this).toggleClass('selected');               
+         function selectOrMove(element, swapPlayerStream, matchStream, matches, match, playerIndex) {
+           return function(event) {
+             $(element).toggleClass('selected');               
            }};
          
          
-         return function(matchStream, matches, match, roundTimerRunning, tooltip, selectionQueue) {
+         return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
            var player1 = match.players[0];
            var player2 = match.players[1];
            var currentResult = {games1:0, games2:0};
@@ -43,7 +30,7 @@ define(['foliage',
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.topButtonPanel').fadeToggle();
                                 } else {
-                                  selectOrMove(selectionQueue, matchStream, matches, match, 0)();
+                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 0)();
                                 }
                               }), f.p('.player1 playerName', player1.name)),
                               f.div('.noMansLand', on.click(function() {
@@ -70,7 +57,7 @@ define(['foliage',
                                   $(this).parents('#table').find('.rightButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
                                 } else if (player2){
-                                  selectOrMove(selectionQueue, matchStream, matches, match, 1);
+                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 1);
                                 }
                               }), f.p('.player2 playerName', opponentName(player2)))),
                         f.div('.topButtonPanel', {'style':'display:none'},

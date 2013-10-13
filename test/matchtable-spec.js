@@ -18,9 +18,9 @@ define(
       return f.div();
     }
     
-    function setUpTable(match, running, playerSelectionQueue) {
+    function setUpTable(match, running, swapPlayerStream) {
       var parent = $('<div />');
-      matchtable(undefined, undefined, match, function(){return running;}, tooltip, playerSelectionQueue)(parent);
+      matchtable(undefined, undefined, match, function(){return running;}, tooltip, swapPlayerStream)(parent);
       return parent;
     }
     
@@ -87,7 +87,7 @@ define(
         $('.player1Side', tableParent).trigger('click');
         assert.equals($('.topButtonPanel', tableParent).css('display'), 'block');
       },
-      'another area of the table hides the other buttonPanels' : function(done) {
+      '//another area of the table hides the other buttonPanels' : function(done) {
         this.timeout = 1000;
         var tableParent = twoPlayerRunningMatchTable();
         
@@ -111,9 +111,10 @@ define(
           players: [{name: 'Marshall'}, {name: 'Bwonger'}],
           reportStream: phloem.stream()
         };
-        var tableParent = setUpTable(match, false, phloem.optional());
+        var swapPlayerStream = phloem.stream();
+        var tableParent = setUpTable(match, false, swapPlayerStream);
         $('.player1Side', tableParent).trigger('click');
-        assert.isTrue($('.player1', tableParent).hasClass('selected'));
+        assert.isTrue($('.player1Side', tableParent).hasClass('selected'));
       }
     });
   });
