@@ -18,9 +18,9 @@ define(
       return f.div();
     }
     
-    function setUpTable(match, running, swapPlayerStream) {
+    function setUpTable(match, running, swapPlayerStream, matchStream) {
       var parent = $('<div />');
-      matchtable(undefined, undefined, match, function(){return running;}, tooltip, swapPlayerStream)(parent);
+      matchtable(matchStream, [match], match, function(){return running;}, tooltip, swapPlayerStream)(parent);
       return parent;
     }
     
@@ -32,7 +32,7 @@ define(
           reportStream: reportStream
         };
         
-        var tableParent = setUpTable(match, false);
+        var tableParent = setUpTable(match, false, phloem.stream());
         reportStream.push(result);
         
         phloem.each(reportStream.read, function(val) {
@@ -49,7 +49,7 @@ define(
         players: [{name: 'Marshall'}, {name: 'Bwonger'}],
         reportStream: phloem.stream()
       };
-      return setUpTable(match, true);
+      return setUpTable(match, true, phloem.stream());
     }
       
     buster.testCase('matchtable', {
@@ -59,7 +59,7 @@ define(
           reportStream: phloem.stream()
         };
         
-        var tableParent = setUpTable(match, false);
+        var tableParent = setUpTable(match, false, phloem.stream());
         
         assert.equals($('.player2', tableParent).text().trim(), '- Bye -');
       },
@@ -125,7 +125,25 @@ define(
         var tableParent = setUpTable(match, false, swapPlayerStream);
         $('.player2Side', tableParent).trigger('click');
         assert.isTrue($('.player2Side', tableParent).hasClass('selected'));
-      }
+      },
+      'player1side then player2side when round not running will swap places with player1 and player2' : function (done) {
+        this.timeout=1000;
+        var match = {
+          players: [{name: 'Marshall'}, {name: 'Bwonger'}],
+          reportStream: phloem.stream()
+        };
+        var swapPlayerStream = phloem.stream();
+        var matchStream = phloem.stream();
+        var tableParent = setUpTable(match, false, swapPlayerStream, matchStream);
+        when(matchStream.read.next()).then(function(matches) {
+            var match = phloem.value(matches)[0];
+            assert.equals(match.players[0].name, 'Bwonger');
+            assert.equals(match.players[1].name, 'Marshall');
+            done();
+        });
+        $('.player1Side', tableParent).trigger('click');
+        _.defer(function() {  $('.player2Side', tableParent).trigger('click')});
+       }
     });
   });
 

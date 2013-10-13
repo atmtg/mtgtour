@@ -1,19 +1,35 @@
 define(['foliage', 
         'foliage/foliage-event',
         'bud',
+        'phloem',
         'when'],
        function(f, 
          on, 
          b,
+         phloem,
          when) 
 {
          var opponentName = function (player2) {
            return player2 ? player2.name : '- Bye -';
          };
          
-         function selectOrMove(element, swapPlayerStream, matchStream, matches, match, playerIndex) {
+         function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
            return function(event) {
-             $(element).toggleClass('selected');               
+             var changeTo = when.defer();
+             if(!_.isEmpty(playerClicked)){
+                 playerClicked[0].swapTo(match.players[playerIndex]);
+                 match.players[playerIndex] = playerClicked[0].player;
+                 swapPlayerStream.push([]);
+             }
+             else {
+                 swapPlayerStream.push([{player:match.players[playerIndex], swapTo:changeTo.resolve}]); 
+                 when(changeTo.promise).then(function(newPlayer){
+                     match.players[playerIndex] = newPlayer;
+                     $(element).toggleClass('selected');                      
+                     matchStream.push(matches);
+                 });
+             }
+             $(element).toggleClass('selected');                      
            }};
          
          
@@ -21,6 +37,11 @@ define(['foliage',
            var player1 = match.players[0];
            var player2 = match.players[1];
            var currentResult = {games1:0, games2:0};
+           var playerClicked = [];
+           phloem.each(swapPlayerStream.read.next(), function(player) {
+               playerClicked = player;
+           });
+
            return f.div('#table', {'class':'matchtable span3'},
                         tooltip('Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'),
                         f.div(f.div('.matchTableSurface'),
@@ -30,7 +51,7 @@ define(['foliage',
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.topButtonPanel').fadeToggle();
                                 } else {
-                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 0)();
+                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)();
                                 }
                               }), f.p('.player1 playerName', player1.name)),
                               f.div('.noMansLand', on.click(function() {
@@ -52,12 +73,13 @@ define(['foliage',
                                 
                               })),
                               f.div('.player2Side', on.click(function() {
+
                                 if(player2 && roundTimerRunning()) {
                                   $(this).parents('#table').find('.topButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.rightButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
                                 } else if (player2){
-                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 1)();
+                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 1)();
                                 }
                               }), f.p('.player2 playerName', opponentName(player2)))),
                         f.div('.topButtonPanel', {'style':'display:none'},
