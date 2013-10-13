@@ -115,6 +115,16 @@ define(
         var tableParent = setUpTable(match, false, swapPlayerStream);
         $('.player1Side', tableParent).trigger('click');
         assert.isTrue($('.player1Side', tableParent).hasClass('selected'));
+      },
+      'player2side when round not running will select player2' : function() {
+        var match = {
+          players: [{name: 'Marshall'}, {name: 'Bwonger'}],
+          reportStream: phloem.stream()
+        };
+        var swapPlayerStream = phloem.stream();
+        var tableParent = setUpTable(match, false, swapPlayerStream);
+        $('.player2Side', tableParent).trigger('click');
+        assert.isTrue($('.player2Side', tableParent).hasClass('selected'));
       }
     });
   });

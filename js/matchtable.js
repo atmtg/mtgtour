@@ -57,7 +57,7 @@ define(['foliage',
                                   $(this).parents('#table').find('.rightButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
                                 } else if (player2){
-                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 1);
+                                  selectOrMove(this, swapPlayerStream, matchStream, matches, match, 1)();
                                 }
                               }), f.p('.player2 playerName', opponentName(player2)))),
                         f.div('.topButtonPanel', {'style':'display:none'},
