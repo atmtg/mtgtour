@@ -36,14 +36,12 @@ define(['foliage',
          return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
            var player1 = match.players[0];
            var player2 = match.players[1];
-           var currentResult = {games1:0, games2:0};
            var playerClicked;
            phloem.each(swapPlayerStream.read.next(), function(player) {
                playerClicked = player;
            });
 
            return f.div('#table', {'class':'matchtable span3'},
-                        tooltip('Click Table to Register Match Result. \nTo Adjust Pairing: Click a Player Name to Select that Player, and then another Player Name to Switch Chairs.'),
                         f.div(f.div('.matchTableSurface'),
                               f.div('.player1Side', on.click(function() {
                                 if(player2 && roundTimerRunning()) {
@@ -54,23 +52,20 @@ define(['foliage',
                                   selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)();
                                 }
                               }), f.p('.player1 playerName', player1.name)),
-                              f.div('.noMansLand', on.click(function() {
+                              f.div('.noMansLand', 
+                                    tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
+                                    on.click(function() {
                                 if(player2 && roundTimerRunning()) {
                                   $(this).parents('#table').find('.topButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.rightButtonPanel').fadeToggle();}
-                              }), b.bind(match.reportStream.read, function(results) {
-                                var reportString = "";
+                              }), b.bind(match.reportStream.read.next(), function(results) {
+                                var reportString =  results.games1 + ' - ' + 
+                                  results.games2 + 
+                                  (results.draws  ? ' - ' + results.draws : '');
                                 
-                                if(results) {
-                                  currentResult = results;
-                                  reportString =  results.games1 + ' - ' + 
-                                    results.games2 + 
-                                    (results.draws  ? ' - ' + results.draws : '');
-                                }
                                 return f.div('.matchResult', 
                                              f.span(reportString));
-                                
                               })),
                               f.div('.player2Side', on.click(function() {
 

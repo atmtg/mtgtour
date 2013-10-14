@@ -154,17 +154,6 @@ define(['foliage',
                })) : f.div();
   }
 
-  function cleanUpMatch(matches, match) {
-    if(!match.players[0] && !match.players[1]) {
-      matches.splice(match, 1);
-    }
-
-    if(!match.players[0]) {
-      match.players[0] = match.players[1];
-      match.players[1] = undefined;
-    }
-  };
-
   function createMatchTables(matches) {
     var tableCount = 1;
 
