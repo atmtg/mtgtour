@@ -32,6 +32,7 @@ define(['foliage',
 
                return b.whenever(playerToSwap.read).then(function(playerForSwap) {
                    return f.div(
+                       playerForSwap.player === player ? '.selected' : undefined,
                        '.seat', on.click(function() {
                            match.players[playerIndex] = playerForSwap.player;
                            playerForSwap.swapTo(player);
