@@ -14,8 +14,12 @@ define(['foliage',
            var scorePanels = ['.rightButtonPanel', 
                               '.bottomButtonPanel', 
                               '.topButtonPanel'];
+           var nameOrBye = function (player) {
+               return player ? player.name : '- Bye -';
+           };
+
            return function(player, otherPlayer, roundTimerRunning, scorePanel) {
-               return f.div(on.click(function() {
+               return f.div('.seat', on.click(function() {
                    if(otherPlayer && roundTimerRunning()) {
                        var self = this;
                        _.each(scorePanels, function(panel) {
@@ -30,7 +34,7 @@ define(['foliage',
                    } else {
                        //                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)(); 
                    }
-               }), f.p('.player1 playerName', player.name));
+               }), f.p('.player1 playerName', nameOrBye(player)));
            }
        }
       );

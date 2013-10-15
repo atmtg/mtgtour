@@ -10,11 +10,7 @@ define(['foliage',
          phloem,
          when,
          seat) 
-{
-         var opponentName = function (player2) {
-           return player2 ? player2.name : '- Bye -';
-         };
-         
+{         
          function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
            return function(event) {
              var changeTo = when.defer();
