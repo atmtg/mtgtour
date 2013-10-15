@@ -18,7 +18,40 @@ define(['foliage',
                return player ? player.name : '- Bye -';
            };
 
-           return function(player, otherPlayer, roundTimerRunning, scorePanel) {
+           function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
+               return function(event) {
+                   var changeTo = when.defer();
+                   if(playerClicked){
+                       playerClicked.swapTo(match.players[playerIndex]);
+                       match.players[playerIndex] = playerClicked.player;
+                       swapPlayerStream.push(undefined);
+                   }
+                   else {
+                       swapPlayerStream.push({player:match.players[playerIndex], swapTo:changeTo.resolve}); 
+                       when(changeTo.promise).then(function(newPlayer){
+                           match.players[playerIndex] = newPlayer;
+                           $(element).toggleClass('selected');                      
+                           matchStream.push(matches);
+                       });
+                   }
+                   $(element).toggleClass('selected');                      
+               }};
+           
+
+           return function(player, 
+                           otherPlayer,
+                           roundTimerRunning, 
+                           scorePanel, 
+                           matchStream, 
+                           matches,
+                           match, 
+                           swapPlayerStream,
+                           playerIndex) {
+               var playerForSwap;
+               phloem.each(swapPlayerStream.read.next(), function(swapTo) {
+                   playerForSwap = swapTo;
+               });
+
                return f.div('.seat', on.click(function() {
                    if(otherPlayer && roundTimerRunning()) {
                        var self = this;
@@ -32,7 +65,13 @@ define(['foliage',
                            }
                        });
                    } else {
-                       //                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)(); 
+                       selectOrMove(this, 
+                                    swapPlayerStream, 
+                                    playerForSwap, 
+                                    matchStream,
+                                    matches,
+                                    match,
+                                    playerIndex)(); 
                    }
                }), f.p('.player1 playerName', nameOrBye(player)));
            }

@@ -11,37 +11,24 @@ define(['foliage',
          when,
          seat) 
 {         
-         function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
-           return function(event) {
-             var changeTo = when.defer();
-             if(playerClicked){
-                 playerClicked.swapTo(match.players[playerIndex]);
-                 match.players[playerIndex] = playerClicked.player;
-                 swapPlayerStream.push(undefined);
-             }
-             else {
-                 swapPlayerStream.push({player:match.players[playerIndex], swapTo:changeTo.resolve}); 
-                 when(changeTo.promise).then(function(newPlayer){
-                     match.players[playerIndex] = newPlayer;
-                     $(element).toggleClass('selected');                      
-                     matchStream.push(matches);
-                 });
-             }
-             $(element).toggleClass('selected');                      
-           }};
          
          
          return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
            var player1 = match.players[0];
            var player2 = match.players[1];
-           var playerClicked;
-           phloem.each(swapPlayerStream.read.next(), function(player) {
-               playerClicked = player;
-           });
 
            return f.div('#table', {'class':'matchtable span3'},
                         f.div(f.div('.matchTableSurface'),
-                              f.div('.player1Side', seat(player1, player2, roundTimerRunning, '.topButtonPanel')),
+                              f.div('.player1Side', 
+                                    seat(player1, 
+                                         player2, 
+                                         roundTimerRunning, 
+                                         '.topButtonPanel',
+                                         matchStream, 
+                                         matches,
+                                         match,
+                                         swapPlayerStream,
+                                         0)),
                               f.div('.noMansLand', 
                                     tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
                                     on.click(function() {
@@ -57,7 +44,16 @@ define(['foliage',
                                 return f.div('.matchResult', 
                                              f.span(reportString));
                               })),
-                              f.div('.player2Side', seat(player2, player1, roundTimerRunning, '.bottomButtonPanel'))),
+                              f.div('.player2Side', 
+                                    seat(player2, 
+                                         player1, 
+                                         roundTimerRunning, 
+                                         '.bottomButtonPanel',
+                                        matchStream,
+                                        matches,
+                                        match,
+                                        swapPlayerStream,
+                                        1))),
                         f.div('.topButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
                                 match.registerResult( 2, 0);})),
