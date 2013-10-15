@@ -45,7 +45,7 @@ define(['foliage',
 
            return f.div('#table', {'class':'matchtable span3'},
                         f.div(f.div('.matchTableSurface'),
-                              f.div('.player1Side', seat(player1, player2, roundTimerRunning)),
+                              f.div('.player1Side', seat(player1, player2, roundTimerRunning, '.topButtonPanel')),
                               f.div('.noMansLand', 
                                     tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
                                     on.click(function() {
@@ -61,16 +61,7 @@ define(['foliage',
                                 return f.div('.matchResult', 
                                              f.span(reportString));
                               })),
-                              f.div('.player2Side', on.click(function() {
-
-                                if(player2 && roundTimerRunning()) {
-                                  $(this).parents('#table').find('.topButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.rightButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
-                                } else if (player2){
-                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 1)();
-                                }
-                              }), f.p('.player2 playerName', opponentName(player2)))),
+                              f.div('.player2Side', seat(player2, player1, roundTimerRunning, '.bottomButtonPanel'))),
                         f.div('.topButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
                                 match.registerResult( 2, 0);})),

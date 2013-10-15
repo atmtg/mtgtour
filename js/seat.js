@@ -11,14 +11,16 @@ define(['foliage',
                 when,
                 _) {
            
-           var scorePanels = ['.rightButtonPanel', '.bottomButtonPanel', '.topButtonPanel'];
-           return function(player, otherPlayer, roundTimerRunning) {
+           var scorePanels = ['.rightButtonPanel', 
+                              '.bottomButtonPanel', 
+                              '.topButtonPanel'];
+           return function(player, otherPlayer, roundTimerRunning, scorePanel) {
                return f.div(on.click(function() {
                    if(otherPlayer && roundTimerRunning()) {
                        var self = this;
                        _.each(scorePanels, function(panel) {
                            var panelElement = $(self).parents('#table').find(panel);
-                           if(panel === '.topButtonPanel'){
+                           if(panel === scorePanel){
                                panelElement.fadeToggle();
                            }
                            else {
