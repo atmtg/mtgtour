@@ -8,7 +8,7 @@ define(['foliage',
        function(f,
                 on,
                 phloem,
-                bud,
+                b,
                 when,
                 _,
                 $) {
@@ -20,26 +20,6 @@ define(['foliage',
                return player ? player.name : '- Bye -';
            };
 
-           function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
-               return function(event) {
-                   var changeTo = when.defer();
-                   if(playerClicked){
-                       playerClicked.swapTo(match.players[playerIndex]);
-                       match.players[playerIndex] = playerClicked.player;
-                       swapPlayerStream.push(undefined);
-                   }
-                   else {
-                       swapPlayerStream.push({player:match.players[playerIndex], swapTo:changeTo.resolve}); 
-                       when(changeTo.promise).then(function(newPlayer){
-                           match.players[playerIndex] = newPlayer;
-                           $(element).toggleClass('selected');                      
-                           matchStream.push(matches);
-                       });
-                   }
-                   $(element).toggleClass('selected');                      
-               }};
-           
-
            return function(player, 
                            otherPlayer,
                            roundTimerRunning, 
@@ -47,35 +27,47 @@ define(['foliage',
                            matchStream, 
                            matches,
                            match, 
-                           swapPlayerStream,
+                           playerToSwap,
                            playerIndex) {
-               var playerForSwap;
-               phloem.each(swapPlayerStream.read.next(), function(swapTo) {
-                   playerForSwap = swapTo;
-               });
 
-               return f.div('.seat', on.click(function() {
-                   if(otherPlayer && roundTimerRunning()) {
-                       var self = this;
-                       _.each(scorePanels, function(panel) {
-                           var panelElement = $(self).parents('#table').find(panel);
-                           if(panel === scorePanel){
-                               panelElement.fadeToggle();
+               return b.whenever(playerToSwap.read).then(function(playerForSwap) {
+                   return f.div(
+                       '.seat', on.click(function() {
+                           match.players[playerIndex] = playerForSwap.player;
+                           playerForSwap.swapTo(player);
+                       }), f.p('.playerName', 
+                               'swap',
+                               nameOrBye(player),
+                              'to',
+                              playerForSwap.player.name))}).
+                   otherwise(function() {
+                       return f.div('.seat', on.click(function(){
+                           if(otherPlayer && roundTimerRunning()) {
+                               var self = this;
+                               _.each(scorePanels, function(panel) {
+                                   var panelElement = $(self).parents('#table').find(panel);
+                                   if(panel === scorePanel){
+                                       panelElement.fadeToggle();
+                                   }
+                                   else {
+                                       panelElement.fadeOut();
+                                   }
+                               });
+                           } else {
+                               var eventuallySwap = when.defer();
+                               playerToSwap.set({
+                                   player: player,
+                                   swapTo: eventuallySwap.resolve
+                               });
+                               when(eventuallySwap.promise).then(function(newPlayer){
+                                   match.players[playerIndex] = newPlayer;
+                                   matchStream.push(matches);
+                                   playerToSwap.clear();
+                               });
                            }
-                           else {
-                               panelElement.fadeOut();
-                           }
-                       });
-                   } else {
-                       selectOrMove(this, 
-                                    swapPlayerStream, 
-                                    playerForSwap, 
-                                    matchStream,
-                                    matches,
-                                    match,
-                                    playerIndex)(); 
-                   }
-               }), f.p('.playerName', nameOrBye(player)));
+                       }), f.p('.playerName', nameOrBye(player)));
+                   });
+
            }
        }
       );
