@@ -2,12 +2,14 @@ define(['foliage',
         'foliage/foliage-event',
         'bud',
         'phloem',
-        'when'],
+        'when',
+        'seat'],
        function(f, 
          on, 
          b,
          phloem,
-         when) 
+         when,
+         seat) 
 {
          var opponentName = function (player2) {
            return player2 ? player2.name : '- Bye -';
@@ -43,15 +45,7 @@ define(['foliage',
 
            return f.div('#table', {'class':'matchtable span3'},
                         f.div(f.div('.matchTableSurface'),
-                              f.div('.player1Side', on.click(function() {
-                                if(player2 && roundTimerRunning()) {
-                                  $(this).parents('#table').find('.rightButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.topButtonPanel').fadeToggle();
-                                } else {
-                                  selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)();
-                                }
-                              }), f.p('.player1 playerName', player1.name)),
+                              f.div('.player1Side', seat(player1, player2, roundTimerRunning)),
                               f.div('.noMansLand', 
                                     tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
                                     on.click(function() {
