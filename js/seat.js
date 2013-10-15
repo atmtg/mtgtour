@@ -3,13 +3,15 @@ define(['foliage',
         'phloem',
         'bud',
         'when',
-        'lodash'], 
+        'lodash',
+        'jquery'], 
        function(f,
                 on,
                 phloem,
                 bud,
                 when,
-                _) {
+                _,
+                $) {
            
            var scorePanels = ['.rightButtonPanel', 
                               '.bottomButtonPanel', 
@@ -73,7 +75,7 @@ define(['foliage',
                                     match,
                                     playerIndex)(); 
                    }
-               }), f.p('.player1 playerName', nameOrBye(player)));
+               }), f.p('.playerName', nameOrBye(player)));
            }
        }
       );

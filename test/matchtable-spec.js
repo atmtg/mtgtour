@@ -78,13 +78,13 @@ define(
       'player2s part of table shows bottom buttonpanel' : function() {
         var tableParent = twoPlayerRunningMatchTable();
         
-        $('.player2Side', tableParent).trigger('click');
+        $('.player2Side .seat', tableParent).trigger('click');
         assert.equals($('.bottomButtonPanel', tableParent).css('display'), 'block');
       },
       'player1s part of table shows top buttonpanel' : function() {
         var tableParent = twoPlayerRunningMatchTable();
         
-        $('.player1Side', tableParent).trigger('click');
+        $('.player1Side .seat', tableParent).trigger('click');
         assert.equals($('.topButtonPanel', tableParent).css('display'), 'block');
       },
       '//another area of the table hides the other buttonPanels' : function(done) {
@@ -113,8 +113,8 @@ define(
         };
         var swapPlayerStream = phloem.stream();
         var tableParent = setUpTable(match, false, swapPlayerStream);
-        $('.player1Side', tableParent).trigger('click');
-        assert.isTrue($('.player1Side', tableParent).hasClass('selected'));
+        $('.player1Side .seat', tableParent).trigger('click');
+        assert.isTrue($('.player1Side .seat', tableParent).hasClass('selected'));
       },
       'player2side when round not running will select player2' : function() {
         var match = {
@@ -123,8 +123,8 @@ define(
         };
         var swapPlayerStream = phloem.stream();
         var tableParent = setUpTable(match, false, swapPlayerStream);
-        $('.player2Side', tableParent).trigger('click');
-        assert.isTrue($('.player2Side', tableParent).hasClass('selected'));
+        $('.player2Side .seat', tableParent).trigger('click');
+        assert.isTrue($('.player2Side .seat', tableParent).hasClass('selected'));
       },
       'player1side then player2side when round not running will swap places with player1 and player2' : function (done) {
         this.timeout=1000;
@@ -141,8 +141,8 @@ define(
             assert.equals(match.players[1].name, 'Marshall');
             done();
         });
-        $('.player1Side', tableParent).trigger('click');
-        _.defer(function() {  $('.player2Side', tableParent).trigger('click')});
+        $('.player1Side .seat', tableParent).trigger('click');
+        _.defer(function() {  $('.player2Side .seat', tableParent).trigger('click')});
        }
     });
   });
