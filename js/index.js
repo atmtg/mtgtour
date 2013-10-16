@@ -154,6 +154,27 @@ define(['foliage',
                })) : f.div();
   }
 
+  function deleteButton(player) {
+    return f.div(f.button('.deleteButton .btn', 
+                          'delete', {'style':'display:none'},
+                          on.click(function() {
+                            players = _.without(players, player);
+                            playerStream.push(players);
+                          })))
+  }
+
+  function dropButton(player) {
+    return f.div(f.button('.deleteButton .btn', 
+                          'drop', {'style':'display:none'},
+                          on.click(function() {
+                            player.dropped = !player.dropped;
+                            playerStream.push(players);
+                            if(!roundTimerRunning()) {
+                              pair.forNextRound(players, matchStream);
+                            }
+                          })))
+  }
+         
   function createMatchTables(matches) {
     var tableCount = 1;
 
@@ -208,7 +229,8 @@ define(['foliage',
                                                  if(event.keyCode === 13 || event.keyCode === 10) {
                                                    addPlayer({name:bus.player_name(),
                                                               results:[],
-                                                              resultStream:phloem.stream()});
+                                                              resultStream:phloem.stream(),
+                                                              dropped:false});
                                                    $('#player_name').select();
                                                  }})))),
                    f.div('.row',
@@ -266,23 +288,16 @@ define(['foliage',
           b.bind(playerStream.read,
                  function(currentPlayers) {
                    return f.div(_.map(currentPlayers, function(player) {
-                     return f.div('.row', 
+                     return f.div('.row',
+                                  player.dropped ? '.dropped' : undefined,
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
-                                    if(!roundTimerRunning()) {
-                                      $(this).find('.deleteButton').toggle()};
+                                    if(!player.dropped)
+                                      $(this).find('.deleteButton').toggle();
                                   }),
                                   f.span('.span1',
-                                         b.bind(matchStream.read, function(matches) {
-                                           if(matches && matches.length > 0)
-                                             return f.div('.span1');
-                                           return f.div('.span1', 
-                                                        f.button('.deleteButton', 'x', {'style':'display:none'},
-                                                                 tooltip('Click to Delete Player'),
-                                                                 on.click(function() {
-                                                                   players = _.without(players, player);
-                                                                   playerStream.push(players);
-                                                                 })))
+                                         b.bind(matchStream.read.next(), function(matches) {
+                                           return matches.length > 0 ? dropButton(player) : deleteButton(player);
                                          })),
                                   f.span('.span2', player.name), 
                                   f.span(b.bind(player.resultStream.read,

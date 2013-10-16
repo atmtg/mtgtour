@@ -83,7 +83,7 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
   };
 
   function forNextRound(players, matchStream) {
-    var players = _.shuffle(players);
+    var players = _.shuffle(_.filter(players, {dropped : false}));
 
     var playersAndPoints = [];
     _.map(players, function(player) {
