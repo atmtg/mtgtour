@@ -13,7 +13,8 @@ define(['foliage',
          on,
          stats,
          pair,
-         matchTable) {
+         matchTable) 
+{
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
@@ -22,7 +23,7 @@ define(['foliage',
   var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
   var playerToSwap = phloem.optional();
-           playerToSwap.clear();
+  playerToSwap.clear();
 
   var roundTimerId, roundNumber = 1;
 
@@ -159,8 +160,8 @@ define(['foliage',
     var tableCount = 1;
 
     return f.div('#matchboard', _.map(matches, function(match) {
-      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip, playerToSwap)})
-   )};
+      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip, playerToSwap)}))
+  };
 
   function reportResultsAndPairForNextRound(matches, players) {
     _.map(matches, function(match) {
