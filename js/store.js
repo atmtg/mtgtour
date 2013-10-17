@@ -15,6 +15,7 @@ define(['lodash'], function(_) {
                     keys().
                     filter(function(key){return key.indexOf(prefix) === 0;}).
                     map(function(key) {return key.substr(prefix.length)}).
+                    filter(function(key){return key.indexOf('/') < 0;} ).
                     sortBy().
                     valueOf();
             }

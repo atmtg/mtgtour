@@ -38,6 +38,12 @@ define(['store'], function(store) {
             var carStore = store.cd("cars");
             carStore.save("tractor", "Volvo");
             assert.equals(carStore.ls(), ["tractor"]);
+        },
+        "can list only player in the current store" : function() {
+            store.save("fruit", "banana");
+            var carStore = store.cd("cars");
+            carStore.save("tractor", "Volvo");
+            assert.equals(store.ls(), ["fruit"]);
         }
     });
 });
