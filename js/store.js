@@ -1,12 +1,16 @@
 define([], function() {
-    var PREFIX = 'atmtg_';
-    return {
-        
-        save:function(key, value) {
-            localStorage[PREFIX+key] = value
-        },
-        load:function(key) {
-            return localStorage[PREFIX+key];
+    var open = function(prefix) {
+        return {
+            save:function(key, value) {
+                localStorage[prefix+key] = value
+            },
+            load:function(key) {
+                return localStorage[prefix+key];
+            },
+            cd:function(directory) {
+                return open(prefix+directory+'/');
+            }
         }
-    };
+    }
+    return open('atmtg_');
 });
