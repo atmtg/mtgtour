@@ -211,7 +211,7 @@ define(['foliage',
       roundNumber++;
       pair.forNextRound(players, matchStream);
     } else {
-      matches = [];
+      matches = undefined;
       matchStream.push(matches);
       roundReportStream.push({time:ROUND_TIME, 
                               roundFinished:false, 
