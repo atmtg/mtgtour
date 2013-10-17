@@ -11,7 +11,12 @@ define(['lodash'], function(_) {
                 return open(prefix+directory+'/');
             },
             ls:function() {
-                return _.sortBy(_.map(_.keys(localStorage), function(key) {return key.substr(prefix.length)}));
+                return _(localStorage).
+                    keys().
+                    filter(function(key){return key.indexOf(prefix) === 0;}).
+                    map(function(key) {return key.substr(prefix.length)}).
+                    sortBy().
+                    valueOf();
             }
         }
     }
