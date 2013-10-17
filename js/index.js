@@ -25,10 +25,11 @@ define(['foliage',
   var players = _.map(playerStore.ls(), function(playerName) {
       var player = playerStore.load(playerName);
       player.results = _.map(player.results, function(result) {
-          result.opponent = playerStore.load(result.opponent);
+          result.opponent = result.opponent && playerStore.load(result.opponent);
           return result;
       });
       player.resultStream = phloem.stream();
+      player.resultStream.push(player.results);
       return player;
   });
 
@@ -36,7 +37,7 @@ define(['foliage',
       console.log(player);
       var resultsToStore = _.map(player.results, function(result){
           var res = _.clone(result);
-          res.opponent = result.opponent.name;
+          res.opponent = result.opponent && result.opponent.name;
           return res;
       });
 
@@ -194,6 +195,7 @@ define(['foliage',
                           'drop', {'style':'display:none'},
                           on.click(function() {
                             player.dropped = !player.dropped;
+                            playerStoreStream.push(player);
                             playerStream.push(players);
                             if(!roundTimerRunning()) {
                               pair.forNextRound(players, matchStream);
