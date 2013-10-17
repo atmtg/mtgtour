@@ -7,7 +7,7 @@ define(['store'], function(store) {
         },
         "stores string in root" : function() {
             store.save("hello", "world");
-            assert.equals(localStorage["atmtg_hello"], "world"); 
+            assert.equals(localStorage["atmtg_hello"], '"world"'); 
         },
         "loads stored string in root" : function() {
             store.save("bye", "cruel world");
@@ -16,12 +16,22 @@ define(['store'], function(store) {
         "stores string in substore" : function() {
             var subStore = store.cd("sub");
             subStore.save("hello", "brave new world");
-            assert.equals(localStorage["atmtg_sub/hello"], "brave new world");
+            assert.equals(localStorage["atmtg_sub/hello"], '"brave new world"');
         },
-        "//can store player" : function() {
+        "can store player" : function() {
             var player = {name:"Marshall"};
             var playerStore = store.cd("players");
-            store.save("player.name", player);
+            playerStore.save(player.name, player);
+            var loadedPlayer = playerStore.load("Marshall");
+            assert.equals(player.name, loadedPlayer.name);
+        },
+        "can list players" : function() {
+            var players = [{name:"Marshall"}, {name:"Brian"}];
+            var playerStore = store.cd("players");
+            _.each(players, function(player) {
+                playerStore.save(player.name, player);
+            });
+            assert.match(playerStore.ls(), ["Brian", "Marshall"]);
         }
     });
 });
