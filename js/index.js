@@ -21,7 +21,6 @@ define(['foliage',
   var ROUND_TIME = 3600;
 
   var getOpponent = function() {
-    console.log("opponentName: " + this.opponentName);
     return this.opponentName && playerStore.load(this.opponentName);
   };
 
