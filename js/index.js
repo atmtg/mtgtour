@@ -50,7 +50,8 @@ define(['foliage',
   var roundReportStream = phloem.stream();
   var swapPlayerStream = phloem.stream();
 
-  var roundTimerId, roundNumber = 1;
+  var roundTimerId, roundNumber = players.length > 0 ? _.max(players, function(player) {
+    return player.results.length}).results.length + 1: 1;
 
   matchStream.push([]);
   playerStream.push(players);
