@@ -13,6 +13,23 @@ define(['foliage',
            return player2 ? player2.name : '- Bye -';
          };
          
+         var parseResultString = function(player1, player2, results) {
+           var reportString = "";
+           if(!player2) {
+             reportString = "- Bye -<br>";
+           } else if(results.games1 > results.games2) {
+             reportString = player1.name + " Wins<br>";
+           } else if(results.games2 > results.games1) {
+             reportString = player2.name + " Wins<br>";
+           } else {
+             reportString = "Draw<br>";
+           }
+           reportString += '(' + results.games1 + ' - ' + 
+             results.games2 + 
+             (results.draws  ? ' - ' + results.draws : '') + ')';
+           return reportString;
+         };
+
          function selectOrMove(element, swapPlayerStream, playerClicked, matchStream, matches, match, playerIndex) {
            return function(event) {
              var changeTo = when.defer();
@@ -59,13 +76,9 @@ define(['foliage',
                                   $(this).parents('#table').find('.topButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
                                   $(this).parents('#table').find('.rightButtonPanel').fadeToggle();}
-                              }), b.bind(match.reportStream.read.next(), function(results) {
-                                var reportString =  results.games1 + ' - ' + 
-                                  results.games2 + 
-                                  (results.draws  ? ' - ' + results.draws : '');
-                                
+                              }), b.bind(match.reportStream.read.next(), function(results) {                             
                                 return f.div('.matchResult', 
-                                             f.span(reportString));
+                                             f.span(parseResultString(player1, player2, results)));
                               })),
                               f.div('.player2Side', on.click(function() {
 
