@@ -29,8 +29,8 @@ define(['lodash'], function(_) {
     var numOpponents = 0;
     var accumulatedMatchWinPercentage = 0.00;
     _.each(results, function(result) {
-      if(result.opponent && result.opponent.results) {
-        accumulatedMatchWinPercentage += parseFloat(matchWinPercentage(result.opponent.results));
+      if(result.opponent() && result.opponent().results) {
+        accumulatedMatchWinPercentage += parseFloat(matchWinPercentage(result.opponent().results));
         numOpponents++;
       };
     });
@@ -43,9 +43,9 @@ define(['lodash'], function(_) {
     var numOpponents = 0;
     var accumulatedGameWinPercentage = 0;
     _.each(results, function(result) {
-      if(result.opponent) {
+      if(result.opponent()) {
         accumulatedGameWinPercentage += 
-          Math.max(gameWinPercentage(result.opponent.results), 33.00);
+          Math.max(gameWinPercentage(result.opponent().results), 33.00);
         numOpponents++;
       };
     });

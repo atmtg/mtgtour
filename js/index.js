@@ -20,13 +20,18 @@ define(['foliage',
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
+  var getOpponent = function() {
+    console.log("opponentName: " + this.opponentName);
+    return this.opponentName && playerStore.load(this.opponentName);
+  };
+
   var playerStore = store.cd("players");
   var playerStoreStream = phloem.stream();
   var players = _.map(playerStore.ls(), function(playerName) {
       var player = playerStore.load(playerName);
       player.results = _.map(player.results, function(result) {
-          result.opponent = result.opponent && playerStore.load(result.opponent);
-          return result;
+        result.opponent = getOpponent; 
+        return result;
       });
       player.resultStream = phloem.stream();
       player.resultStream.push(player.results);
@@ -34,11 +39,8 @@ define(['foliage',
   });
 
   phloem.each(playerStoreStream.read.next(), function(player) {
-      console.log(player);
       var resultsToStore = _.map(player.results, function(result){
-          var res = _.clone(result);
-          res.opponent = result.opponent && result.opponent.name;
-          return res;
+        return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
       });
 
       var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped};
@@ -81,8 +83,9 @@ define(['foliage',
   var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
-      if(result.opponent) {
-        matchLogString += result.opponent.name + ' (' + 
+      result.opponent();
+      if(result.opponent()) {
+        matchLogString += result.opponent().name + ' (' + 
           result.wins + '-' + result.loss + (result.draws ? '-'+result.draws : '') + '), '
       } else {
         matchLogString += '- Bye -, ';
@@ -221,14 +224,16 @@ define(['foliage',
       player1.results = player1.results.concat([{wins:player1Games, 
                                                  loss:player2Games, 
                                                  draws:drawnGames ? drawnGames : 0,
-                                                 opponent:player2}]);
+                                                 opponentName:player2 && player2.name,
+                                                 opponent:getOpponent}]);
       player1.resultStream.push(player1.results);
       playerStoreStream.push(player1);
       if(player2) {
         player2.results = player2.results.concat([{wins:player2Games, 
                                                    loss:player1Games,
                                                    draws: drawnGames ? drawnGames : 0,
-                                                   opponent:player1}]);
+                                                   opponentName:player1.name,
+                                                   opponent:getOpponent}]);
         player2.resultStream.push(player2.results);
         playerStoreStream.push(player2);
       }
