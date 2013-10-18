@@ -187,6 +187,7 @@ define(['foliage',
     return f.div(f.button('.deleteButton .btn', 
                           'delete', {'style':'display:none'},
                           on.click(function() {
+                            playerStore.rm(player.name);
                             players = _.without(players, player);
                             playerStream.push(players);
                           })))

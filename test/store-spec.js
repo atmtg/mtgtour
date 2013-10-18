@@ -33,16 +33,27 @@ define(['store'], function(store) {
             });
             assert.match(playerStore.ls(), ["Brian", "Marshall"]);
         },
-        "can list only player in the current store" : function() {
+        "can list only items in the current store" : function() {
             store.save("fruit", "banana");
             var carStore = store.cd("cars");
             carStore.save("tractor", "Volvo");
             assert.equals(carStore.ls(), ["tractor"]);
         },
-        "can list only player in the current store" : function() {
+        "can list only items in the current store and ignore substores" : function() {
             store.save("fruit", "banana");
             var carStore = store.cd("cars");
             carStore.save("tractor", "Volvo");
+            assert.equals(store.ls(), ["fruit"]);
+        },
+        "can remove items" : function() {
+            store.save("fruit", "banana");
+            store.rm("fruit");
+            assert.equals(store.ls(), []);
+        },
+        "can remove specific item" : function() {
+            store.save("fruit", "banana");
+            store.save("other_fruit", "apple");
+            store.rm("other_fruit");
             assert.equals(store.ls(), ["fruit"]);
         }
     });

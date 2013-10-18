@@ -18,6 +18,9 @@ define(['lodash'], function(_) {
                     filter(function(key){return key.indexOf('/') < 0;} ).
                     sortBy().
                     valueOf();
+            },
+            rm:function(key) {
+              return localStorage.removeItem(prefix+key);
             }
         }
     }
