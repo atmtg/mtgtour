@@ -142,7 +142,9 @@ define(
             done();
         });
         $('.player1Side', tableParent).trigger('click');
-        _.defer(function() {  $('.player2Side', tableParent).trigger('click')});
+        when(swapPlayerStream.read.next()).then(function() {
+          _.defer(function() {$('.player2Side', tableParent).trigger('click')});
+        })
        }
     });
   });

@@ -25,7 +25,6 @@ define(['foliage',
                  swapPlayerStream.push({player:match.players[playerIndex], swapTo:changeTo.resolve}); 
                  when(changeTo.promise).then(function(newPlayer){
                      match.players[playerIndex] = newPlayer;
-                     $(element).toggleClass('selected');                      
                      matchStream.push(matches);
                  });
              }

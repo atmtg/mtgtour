@@ -5,27 +5,93 @@ define(['foliage',
         'foliage/foliage-event',
         'statistics',
         'pairing',
-        'matchtable'], 
+        'matchtable',
+        'store',
+        'when'], 
        function(f, 
-         b, 
-         phloem, 
-         _, 
-         on,
-         stats,
-         pair,
-         matchTable) {
+                b, 
+                phloem, 
+                _, 
+                on,
+                stats,
+                pair,
+                matchTable,
+                store,
+                when) {
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
-  var players = [];
+  var activeTournament = store.load("activeTournament");
+  var currentTournament = store.subStore(activeTournament || 'tournament');
+
+  var pairings = currentTournament.load("pairings") || [];
+  var playerStore = currentTournament.subStore("players");
+  var playerStoreStream = phloem.stream();
+  var loadedPlayers = {};
+  var loadPlayer = function(playerName) {
+      var getOpponent = function() {
+          return this.opponentName && loadPlayer(this.opponentName);
+      };
+      var doLoad = function() {
+          if (playerName === null) {
+              return undefined;
+          }
+          var player = playerStore.load(playerName);
+          player.results = _.map(player.results, function(result) {
+              result.opponent = getOpponent; 
+              return result;
+          });
+          player.resultStream = phloem.stream();
+          player.resultStream.push(player.results);
+          
+          loadedPlayers[playerName] = player;
+          return player;
+      }
+      return loadedPlayers[playerName] || doLoad();
+  };
+
+  var players = _.map(playerStore.ls(), function(playerName) {
+      return loadPlayer(playerName);
+  });
+
+
+  phloem.each(playerStoreStream.read.next(), function(player) {
+      var resultsToStore = _.map(player.results, function(result){
+        return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
+      });
+
+      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped};
+      playerStore.save(player.name, playerToStore);
+  });
+
   var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
   var swapPlayerStream = phloem.stream();
 
-  var roundTimerId, roundNumber = 1;
+  var roundTimerId, roundNumber = players.length > 0 ? _.max(players, function(player) {
+    return player.results.length}).results.length + 1: 1;
 
-  matchStream.push([]);
+
+  when(matchStream.read.next()).then(function(elem) {
+      console.log("next match element", elem);
+      phloem.each(elem.next(), function(matches) {
+          currentTournament.save('pairings', 
+                                 _.map(matches, function(match) {
+                                     return _.map(match.players, function(player) {
+                                         return player && player.name;
+                                     });
+                                 }));
+      });
+  });
+
+  matchStream.push(_.map(pairings, function(pairing) {
+      return pair.createMatch(_.map(pairing, loadPlayer));
+  }));
+
+
+           
+
   playerStream.push(players);
 
   var tooltip = function(text) {
@@ -41,6 +107,7 @@ define(['foliage',
   };
 
   function addPlayer(player) {
+    playerStoreStream.push(player);
     players = players.concat([player]);
     playerStream.push(players);
   };
@@ -54,8 +121,9 @@ define(['foliage',
   var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
-      if(result.opponent) {
-        matchLogString += result.opponent.name + ' (' + 
+      result.opponent();
+      if(result.opponent()) {
+        matchLogString += result.opponent().name + ' (' + 
           result.wins + '-' + result.loss + (result.draws ? '-'+result.draws : '') + '), '
       } else {
         matchLogString += '- Bye -, ';
@@ -152,12 +220,25 @@ define(['foliage',
                  roundTimerId = undefined;
                  reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
-  }
+  };
+
+  function buttonToStartNewTournament() {
+    return f.button('.btn roundButton',
+            'Start new tournament',
+            on.click(function() {
+              $(this).fadeOut();
+              var newTournamentKey = "Tournament-" + (new Date()).toString();
+              store.save("activeTournament", newTournamentKey);
+              currentTournament = store.subStore(newTournamentKey);
+              document.location.reload();
+            }));
+  };
 
   function deleteButton(player) {
     return f.div(f.button('.deleteButton .btn', 
                           'delete', {'style':'display:none'},
                           on.click(function() {
+                            playerStore.rm(player.name);
                             players = _.without(players, player);
                             playerStream.push(players);
                           })))
@@ -168,6 +249,7 @@ define(['foliage',
                           'drop', {'style':'display:none'},
                           on.click(function() {
                             player.dropped = !player.dropped;
+                            playerStoreStream.push(player);
                             playerStream.push(players);
                             if(!roundTimerRunning()) {
                               pair.forNextRound(players, matchStream);
@@ -192,15 +274,19 @@ define(['foliage',
 
       player1.results = player1.results.concat([{wins:player1Games, 
                                                  loss:player2Games, 
-                                                 draws:drawnGames,
-                                                 opponent:player2}]);
-      player1.resultStream.push(player1.results)
+                                                 draws:drawnGames ? drawnGames : 0,
+                                                 opponentName:player2 && player2.name,
+                                                 opponent:function(){return player2}}]);
+      player1.resultStream.push(player1.results);
+      playerStoreStream.push(player1);
       if(player2) {
         player2.results = player2.results.concat([{wins:player2Games, 
                                                    loss:player1Games,
-                                                   draws: drawnGames,
-                                                   opponent:player1}]);
-        player2.resultStream.push(player2.results)
+                                                   draws: drawnGames ? drawnGames : 0,
+                                                   opponentName:player1.name,
+                                                   opponent:function(){return player1}}]);
+        player2.resultStream.push(player2.results);
+        playerStoreStream.push(player2);
       }
     });
     
@@ -243,8 +329,7 @@ define(['foliage',
                                      }))),
                          f.div(f.button('.btn span3', 'Pair for Round One',
                                         on.click(function(){
-                                          $('#newplayer').fadeOut();
-                                          pair.forFirstRound(players, matchStream);  
+                                            pair.forFirstRound(players, matchStream);  
                                         })))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
@@ -253,8 +338,9 @@ define(['foliage',
     b.bind(matchStream.read,
            function(matches) {
              if(matches && matches.length > 0) {
-               roundReportStream.push({time:ROUND_TIME, 
-                                       roundFinished:false, tournamentResult:undefined});
+                 $('#newplayer').hide();
+                 roundReportStream.push({time:ROUND_TIME, 
+                                         roundFinished:false, tournamentResult:undefined});
              }
              return buttonToStartRound(matches);
            }),
@@ -269,7 +355,8 @@ define(['foliage',
     b.bind(roundReportStream.read,
           function(roundReport) {
             if(roundReport && roundReport.tournamentResult) {
-              return f.div('#tournamentResult', f.span(roundReport.tournamentResult));
+              return f.div('#tournamentResult', f.span(roundReport.tournamentResult),
+                          buttonToStartNewTournament());
             } 
             return f.div();
           }),
