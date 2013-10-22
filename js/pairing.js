@@ -123,5 +123,6 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
   };
 
   return {forFirstRound:forFirstRound,
-          forNextRound:forNextRound};
+          forNextRound:forNextRound,
+          createMatch:createMatch};
 })

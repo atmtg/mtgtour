@@ -6,7 +6,8 @@ define(['foliage',
         'statistics',
         'pairing',
         'matchtable',
-        'store'], 
+        'store',
+        'when'], 
        function(f, 
                 b, 
                 phloem, 
@@ -15,7 +16,8 @@ define(['foliage',
                 stats,
                 pair,
                 matchTable,
-                store) {
+                store,
+                when) {
 
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
@@ -26,10 +28,11 @@ define(['foliage',
 
   var activeTournament = store.load("activeTournament");
   var currentTournament = store.subStore(activeTournament || 'tournament');
-           
+
+  var pairings = currentTournament.load("pairings") || [];
   var playerStore = currentTournament.subStore("players");
   var playerStoreStream = phloem.stream();
-  var players = _.map(playerStore.ls(), function(playerName) {
+  var loadPlayer = function(playerName) {
       var player = playerStore.load(playerName);
       player.results = _.map(player.results, function(result) {
         result.opponent = getOpponent; 
@@ -38,6 +41,9 @@ define(['foliage',
       player.resultStream = phloem.stream();
       player.resultStream.push(player.results);
       return player;
+  };
+  var players = _.map(playerStore.ls(), function(playerName) {
+      return loadPlayer(playerName);
   });
 
   phloem.each(playerStoreStream.read.next(), function(player) {
@@ -56,7 +62,25 @@ define(['foliage',
   var roundTimerId, roundNumber = players.length > 0 ? _.max(players, function(player) {
     return player.results.length}).results.length + 1: 1;
 
-  matchStream.push([]);
+
+  when(matchStream.read.next()).then(function(elem) {
+      console.log("next match element", elem);
+      phloem.each(elem.next(), function(matches) {
+          currentTournament.save('pairings', 
+                                 _.map(matches, function(match) {
+                                     return _.pluck(match.players, 'name');
+                                 }));
+      });
+ 
+  });
+
+  matchStream.push(_.map(pairings, function(pairing) {
+      return pair.createMatch(_.map(pairing, loadPlayer));
+  }));
+
+
+           
+
   playerStream.push(players);
 
   var tooltip = function(text) {
@@ -294,8 +318,7 @@ define(['foliage',
                                      }))),
                          f.div(f.button('.btn span3', 'Pair for Round One',
                                         on.click(function(){
-                                          $('#newplayer').fadeOut();
-                                          pair.forFirstRound(players, matchStream);  
+                                            pair.forFirstRound(players, matchStream);  
                                         })))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
@@ -304,8 +327,9 @@ define(['foliage',
     b.bind(matchStream.read,
            function(matches) {
              if(matches && matches.length > 0) {
-               roundReportStream.push({time:ROUND_TIME, 
-                                       roundFinished:false, tournamentResult:undefined});
+                 $('#newplayer').hide();
+                 roundReportStream.push({time:ROUND_TIME, 
+                                         roundFinished:false, tournamentResult:undefined});
              }
              return buttonToStartRound(matches);
            }),
