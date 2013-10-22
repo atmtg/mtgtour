@@ -24,7 +24,10 @@ define(['foliage',
     return this.opponentName && playerStore.load(this.opponentName);
   };
 
-  var playerStore = store.cd("players");
+  var activeTournament = store.load("activeTournament");
+  var currentTournament = store.subStore(activeTournament || 'tournament');
+           
+  var playerStore = currentTournament.subStore("players");
   var playerStoreStream = phloem.stream();
   var players = _.map(playerStore.ls(), function(playerName) {
       var player = playerStore.load(playerName);
@@ -189,7 +192,9 @@ define(['foliage',
             'Start new tournament',
             on.click(function() {
               $(this).fadeOut();
-              localStorage.clear();
+              var newTournamentKey = "Tournament-" + (new Date()).toString();
+              store.save("activeTournament", newTournamentKey);
+              currentTournament = store.subStore(newTournamentKey);
               document.location.reload();
             }));
   };

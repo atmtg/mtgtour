@@ -5,9 +5,10 @@ define(['lodash'], function(_) {
                 localStorage[prefix+key] = JSON.stringify(value);
             },
             load:function(key) {
-                return JSON.parse(localStorage[prefix+key]);
+                var content = localStorage[prefix+key];
+                return content && JSON.parse(content);
             },
-            cd:function(directory) {
+            subStore:function(directory) {
                 return open(prefix+directory+'/');
             },
             ls:function() {
