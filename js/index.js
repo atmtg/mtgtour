@@ -22,29 +22,37 @@ define(['foliage',
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
-  var getOpponent = function() {
-    return this.opponentName && playerStore.load(this.opponentName);
-  };
-
   var activeTournament = store.load("activeTournament");
   var currentTournament = store.subStore(activeTournament || 'tournament');
 
   var pairings = currentTournament.load("pairings") || [];
   var playerStore = currentTournament.subStore("players");
   var playerStoreStream = phloem.stream();
+  var loadedPlayers = {};
   var loadPlayer = function(playerName) {
-      var player = playerStore.load(playerName);
-      player.results = _.map(player.results, function(result) {
-        result.opponent = getOpponent; 
-        return result;
-      });
-      player.resultStream = phloem.stream();
-      player.resultStream.push(player.results);
-      return player;
+      var getOpponent = function() {
+          return this.opponentName && loadPlayer(this.opponentName);
+      };
+      var doLoad = function() {
+
+          var player = playerStore.load(playerName);
+          player.results = _.map(player.results, function(result) {
+              result.opponent = getOpponent; 
+              return result;
+          });
+          player.resultStream = phloem.stream();
+          player.resultStream.push(player.results);
+          
+          loadedPlayers[playerName] = player;
+          return player;
+      }
+      return loadedPlayers[playerName] || doLoad();
   };
+
   var players = _.map(playerStore.ls(), function(playerName) {
       return loadPlayer(playerName);
   });
+
 
   phloem.each(playerStoreStream.read.next(), function(player) {
       var resultsToStore = _.map(player.results, function(result){
@@ -265,7 +273,7 @@ define(['foliage',
                                                  loss:player2Games, 
                                                  draws:drawnGames ? drawnGames : 0,
                                                  opponentName:player2 && player2.name,
-                                                 opponent:getOpponent}]);
+                                                 opponent:function(){return player2}}]);
       player1.resultStream.push(player1.results);
       playerStoreStream.push(player1);
       if(player2) {
@@ -273,7 +281,7 @@ define(['foliage',
                                                    loss:player1Games,
                                                    draws: drawnGames ? drawnGames : 0,
                                                    opponentName:player1.name,
-                                                   opponent:getOpponent}]);
+                                                   opponent:function(){return player1}}]);
         player2.resultStream.push(player2.results);
         playerStoreStream.push(player2);
       }
