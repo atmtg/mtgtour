@@ -34,7 +34,9 @@ define(['foliage',
           return this.opponentName && loadPlayer(this.opponentName);
       };
       var doLoad = function() {
-
+          if (playerName === null) {
+              return undefined;
+          }
           var player = playerStore.load(playerName);
           player.results = _.map(player.results, function(result) {
               result.opponent = getOpponent; 
@@ -76,10 +78,11 @@ define(['foliage',
       phloem.each(elem.next(), function(matches) {
           currentTournament.save('pairings', 
                                  _.map(matches, function(match) {
-                                     return _.pluck(match.players, 'name');
+                                     return _.map(match.players, function(player) {
+                                         return player && player.name;
+                                     });
                                  }));
       });
- 
   });
 
   matchStream.push(_.map(pairings, function(pairing) {
