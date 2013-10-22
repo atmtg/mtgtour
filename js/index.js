@@ -182,7 +182,17 @@ define(['foliage',
                  roundTimerId = undefined;
                  reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
-  }
+  };
+
+  function buttonToStartNewTournament() {
+    return f.button('.btn roundButton',
+            'Start new tournament',
+            on.click(function() {
+              $(this).fadeOut();
+              localStorage.clear();
+              document.location.reload();
+            }));
+  };
 
   function deleteButton(player) {
     return f.div(f.button('.deleteButton .btn', 
@@ -305,7 +315,8 @@ define(['foliage',
     b.bind(roundReportStream.read,
           function(roundReport) {
             if(roundReport && roundReport.tournamentResult) {
-              return f.div('#tournamentResult', f.span(roundReport.tournamentResult));
+              return f.div('#tournamentResult', f.span(roundReport.tournamentResult),
+                          buttonToStartNewTournament());
             } 
             return f.div();
           }),
