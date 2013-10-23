@@ -47,22 +47,29 @@ define(['foliage',
              }
              $(element).toggleClass('selected');                      
            }};
-         
-         
+      
+         function hideAllButtons() {
+           $('.matchtable').each(function() {$(this).find('.rightButtonPanel').fadeOut()});
+           $('.matchtable').each(function() {$(this).find('.bottomButtonPanel').fadeOut()});
+           $('.matchtable').each(function() {$(this).find('.topButtonPanel').fadeOut()});
+         }
+  
          return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
            var player1 = match.players[0];
            var player2 = match.players[1];
            var playerClicked;
            phloem.each(swapPlayerStream.read.next(), function(player) {
-               playerClicked = player;
+             playerClicked = player;
            });
-
+           phloem.each(match.reportStream.read.next(), function(ignore) {
+             hideAllButtons();
+           });
+           
            return f.div('#table', {'class':'matchtable span3'},
                         f.div(f.div('.matchTableSurface'),
                               f.div('.player1Side', on.click(function() {
                                 if(player2 && roundTimerRunning()) {
-                                  $(this).parents('#table').find('.rightButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
+                                  hideAllButtons();
                                   $(this).parents('#table').find('.topButtonPanel').fadeToggle();
                                 } else {
                                   selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)();
@@ -72,8 +79,7 @@ define(['foliage',
                                     tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
                                     on.click(function() {
                                 if(player2 && roundTimerRunning()) {
-                                  $(this).parents('#table').find('.topButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.bottomButtonPanel').fadeOut();
+                                  hideAllButtons();
                                   $(this).parents('#table').find('.rightButtonPanel').fadeToggle();}
                               }), b.bind(match.reportStream.read.next(), function(results) {                             
                                 return f.div('.matchResult', 
@@ -82,8 +88,7 @@ define(['foliage',
                               f.div('.player2Side', on.click(function() {
 
                                 if(player2 && roundTimerRunning()) {
-                                  $(this).parents('#table').find('.topButtonPanel').fadeOut();
-                                  $(this).parents('#table').find('.rightButtonPanel').fadeOut();
+                                  hideAllButtons();
                                   $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
                                 } else if (player2){
                                   selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 1)();
