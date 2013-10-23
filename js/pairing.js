@@ -5,9 +5,22 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
     var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
     var pairings = _.zip(firstHalf, secondHalf);
     var matches = _.map(pairings, function(pairing) {
-      return {players:pairing, reportStream:phloem.stream(), result:[]};
+      return createMatch(pairing);
     });
     matchStream.push(matches);
+  };
+
+  function createMatch(pairing) {
+      var match = {players:pairing, reportStream:phloem.stream()};
+      match.registerResult =  function (player1Games, player2Games) {
+          match.result = {games1:player1Games, games2:player2Games};
+          match.reportStream.push(match.result);
+      };
+      match.registerDraw =  function (drawnGames) {
+          match.result.draws = drawnGames;
+          match.reportStream.push(match.result);
+      };
+      return match;
   };
 
   var matchesPlayed = function(player1, player2) {
@@ -70,7 +83,7 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
   };
 
   function forNextRound(players, matchStream) {
-    var players = _.shuffle(players);
+    var players = _.shuffle(_.filter(players, {dropped : false}));
 
     var playersAndPoints = [];
     _.map(players, function(player) {
@@ -86,10 +99,10 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
       var listOfPlayersWithMinByes = playersWithMinimumNumberOfByes(playersAndPoints);
       if(!byeGivenThisRound && ((playersAndPoints.length%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
                        (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
-        matches = matches.concat([{players:[playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
-                                            undefined], 
-                                   reportStream:phloem.stream(),
-                                   result:[]}]);
+        matches = matches.concat([
+            createMatch([playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
+                                            undefined])
+        ]);
         playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
         byeGivenThisRound = true;
         continue;
@@ -103,15 +116,13 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
       var indexOfPlayer2 = maxPoints(playersAndPoints, leastFrequentOpponentIndexes);
       var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
       playersAndPoints.splice(indexOfPlayer2, 1);
-
-      matches = matches.concat([{players:[ply1, ply2], 
-                                 reportStream:phloem.stream(), 
-                                 result:[]}]);
+      matches = matches.concat([createMatch([ply1, ply2])]);
     };
 
     matchStream.push(matches);
   };
 
   return {forFirstRound:forFirstRound,
-          forNextRound:forNextRound};
+          forNextRound:forNextRound,
+          createMatch:createMatch};
 })

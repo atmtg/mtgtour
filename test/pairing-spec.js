@@ -1,6 +1,6 @@
 define(
-  ['pairing', 'phloem'],
-  function(pairing, phloem) {
+  ['pairing', 'phloem', 'when'],
+  function(pairing, phloem, when) {
 
     var winAgainst = function(name) {
       return {wins:2, loss:0, opponent:name};};
@@ -50,9 +50,9 @@ define(
         })
       },
       'Player with fewest number of points will sit out next round' : function() {
-        var kalle = {name:'Kalle', results:[winAgainst('Pelle')]};
-        var pelle = {name:'Pelle', results:[lossAgainst('Kalle')]};
-        var olle = {name:'Olle', results:[bye()]};
+        var kalle = {name:'Kalle', results:[winAgainst('Pelle')], dropped:false};
+        var pelle = {name:'Pelle', results:[lossAgainst('Kalle')], dropped:false};
+        var olle = {name:'Olle', results:[bye()], dropped:false};
         var threePlayers = [kalle, pelle, olle];
         var resultStream = phloem.stream();
 
@@ -63,9 +63,9 @@ define(
         })
       },
       'Player with highest number of points will sit out if that player is last to sit out' : function() {
-        var kalle = {name:'Kalle', results:[winAgainst('Pelle'), winAgainst('Olle')]};
-        var pelle = {name:'Pelle', results:[lossAgainst('Kalle'), bye()]};
-        var olle = {name:'Olle', results:[bye(), lossAgainst('Kalle')]};
+        var kalle = {name:'Kalle', results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
+        var pelle = {name:'Pelle', results:[lossAgainst('Kalle'), bye()], dropped:false};
+        var olle = {name:'Olle', results:[bye(), lossAgainst('Kalle')], dropped:false};
         var threePlayers = [kalle, pelle, olle];
         var resultStream = phloem.stream();
 
@@ -73,6 +73,19 @@ define(
         return when(resultStream.read.next()).then(function(result) {
           assert.equals(result.value.length, 2);
           assert.equals(result.value[0].players, [kalle, undefined]);
+        })
+      },
+      'dropped player is ignored when pairing' : function() {
+        var kalle = {name:'Kalle', results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
+        var pelle = {name:'Pelle', results:[lossAgainst('Kalle'), bye()], dropped:true};
+        var olle = {name:'Olle', results:[bye(), lossAgainst('Kalle')], dropped:false};
+        var threePlayers = [kalle, pelle, olle];
+        var resultStream = phloem.stream();
+
+        pairing.forNextRound(threePlayers, resultStream);
+        return when(resultStream.read.next()).then(function(result) {
+          assert.equals(result.value.length, 1);
+          assert.equals(result.value[0].players, [kalle, olle]);
         })
       }
     })});

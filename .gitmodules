@@ -3,7 +3,7 @@
 	url = git://github.com/cloudhead/less.js.git
 [submodule "modules/lodash"]
 	path = modules/lodash
-	url = git://github.com/bestiejs/lodash.git
+	url = git://github.com/lodash/lodash.git
 [submodule "modules/foliage"]
 	path = modules/foliage
 	url = git://github.com/herbalism/foliage.git

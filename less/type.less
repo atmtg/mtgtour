@@ -262,10 +262,10 @@ address {
 }
 
 .deleteButton {
-  color: @blue;
-  border-color: @blue;
-  background-color: transparent;
-  line-height: 10px;
+  //color: @blue;
+  //border-color: @blue;
+  //background-color: transparent;
+  line-height: 14px;
 }
 
 .emphasized {
@@ -313,6 +313,27 @@ address {
      background-image:url('img/matchTable.png');
 }
 
+.player1Side {
+     width: 10em;
+     height: 5em;
+     z-index: 100;
+     position: relative;
+}
+
+.player2Side {
+     width: 10em;
+     height: 5em;
+     z-index:100;
+     position: relative;
+}
+
+.noMansLand {
+     width: 10em;
+     height: 5em;
+     z-index:100;
+     position: relative;
+}
+
 .playerName {
      width: 140px;
      heigth: 20px;
@@ -323,19 +344,29 @@ address {
      z-index:10;
 }
 
-.player2 {
-     bottom: -7em;
-}
-
 .selected {
      color: @red;
 }
 
-.buttonPanel {
+.rightButtonPanel {
      position: absolute;
      left: 11em;
      top: 2em;
      width: 5em;
+}
+
+.topButtonPanel {
+     position: absolute;
+     left: -0.7em;
+     top: -2.8em;
+     width: 12em;
+}
+
+.bottomButtonPanel {
+     position: absolute;
+     left: -0.7em;
+     top: 16em;
+     width: 12em;
 }
 
 .matchResult {
@@ -367,6 +398,10 @@ address {
      color: @red;
 }
 
+.dropped {
+     color: @gray;
+}
+
 #roundTitle {
      position: absolute;
      width: 30em;
@@ -381,6 +416,7 @@ address {
      position: absolute;
      width: 20em;
      margin-left: -10em;
+     padding-bottom: 5em;
      left: 50%;
      top: 25%;
      font-size: 300%;

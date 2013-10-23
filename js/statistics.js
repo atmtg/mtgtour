@@ -16,8 +16,9 @@ define(['lodash'], function(_) {
   
   var gameWinPercentage = function (results) {
     var winsAndTotal = _.reduce(results, function(acc, val) {
-      acc.points += (val.wins * 3);
-      acc.total += val.wins + val.loss;
+      var draws = (val.draws ? val.draws : 0);
+      acc.points += (val.wins * 3) + draws;
+      acc.total += val.wins + val.loss + draws;
       return acc}, {points:0, total:0})
 
     return winsAndTotal.total == 0 ? (0).toFixed(2) : 
@@ -28,8 +29,8 @@ define(['lodash'], function(_) {
     var numOpponents = 0;
     var accumulatedMatchWinPercentage = 0.00;
     _.each(results, function(result) {
-      if(result.opponent && result.opponent.results) {
-        accumulatedMatchWinPercentage += parseFloat(matchWinPercentage(result.opponent.results));
+      if(result.opponent() && result.opponent().results) {
+        accumulatedMatchWinPercentage += parseFloat(matchWinPercentage(result.opponent().results));
         numOpponents++;
       };
     });
@@ -42,9 +43,9 @@ define(['lodash'], function(_) {
     var numOpponents = 0;
     var accumulatedGameWinPercentage = 0;
     _.each(results, function(result) {
-      if(result.opponent) {
+      if(result.opponent()) {
         accumulatedGameWinPercentage += 
-          Math.max(gameWinPercentage(result.opponent.results), 33.00);
+          Math.max(gameWinPercentage(result.opponent().results), 33.00);
         numOpponents++;
       };
     });
