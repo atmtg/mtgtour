@@ -22,8 +22,16 @@ define(['foliage',
   var NUM_ROUNDS = 3;
   var ROUND_TIME = 3600;
 
+  var matchPoints = stats.matchPoints;
+  var matchWinPercentage = stats.matchWinPercentage; 
+  var gameWinPercentage = stats.gameWinPercentage;
+  var opponentsMatchWinPercentage = stats.opponentsMatchWinPercentage;
+  var opponentsGameWinPercentage = stats.opponentsGameWinPercentage;
+
   var activeTournament = store.load("activeTournament");
   var currentTournament = store.subStore(activeTournament || 'tournament');
+
+  var matchStream = phloem.stream(), playerStream = phloem.stream();
 
   var pairings = currentTournament.load("pairings") || [];
   var playerStore = currentTournament.subStore("players");
@@ -51,10 +59,10 @@ define(['foliage',
       return loadedPlayers[playerName] || doLoad();
   };
 
-  var players = _.map(playerStore.ls(), function(playerName) {
-      return loadPlayer(playerName);
-  });
-
+  var players = sortPlayers(_.map(playerStore.ls(), function(playerName) {
+    return loadPlayer(playerName);
+  }));
+  playerStream.push(players);
 
   phloem.each(playerStoreStream.read.next(), function(player) {
       var resultsToStore = _.map(player.results, function(result){
@@ -65,7 +73,6 @@ define(['foliage',
       playerStore.save(player.name, playerToStore);
   });
 
-  var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
   var swapPlayerStream = phloem.stream();
 
@@ -74,26 +81,20 @@ define(['foliage',
 
 
   when(matchStream.read.next()).then(function(elem) {
-      console.log("next match element", elem);
-      phloem.each(elem.next(), function(matches) {
-          currentTournament.save('pairings', 
-                                 _.map(matches, function(match) {
-                                     return _.map(match.players, function(player) {
-                                         return player && player.name;
-                                     });
-                                 }));
-      });
+    phloem.each(elem.next(), function(matches) {
+      currentTournament.save('pairings', 
+                             _.map(matches, function(match) {
+                               return _.map(match.players, function(player) {
+                                 return player && player.name;
+                               });
+                             }));
+    });
   });
 
   matchStream.push(_.map(pairings, function(pairing) {
       return pair.createMatch(_.map(pairing, loadPlayer));
   }));
-
-
            
-
-  playerStream.push(players);
-
   var tooltip = function(text) {
     return function(parent) {
       parent.attr('title', text);
@@ -112,12 +113,6 @@ define(['foliage',
     playerStream.push(players);
   };
          
-  var matchPoints = stats.matchPoints;
-  var matchWinPercentage = stats.matchWinPercentage; 
-  var gameWinPercentage = stats.gameWinPercentage;
-  var opponentsMatchWinPercentage = stats.opponentsMatchWinPercentage;
-  var opponentsGameWinPercentage = stats.opponentsGameWinPercentage;
-
   var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
