@@ -314,7 +314,7 @@ define(['foliage',
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
-                   f.div('.row', f.div('.span4', 
+                   f.div('.row', f.div('.span5', 
                                        f.input('#player_name', {'type': 'text', 
                                                                 'placeholder':'Player name'}, bus.expose,
                                                on.keypress(function(event) {
@@ -333,6 +333,24 @@ define(['foliage',
                                        players = _.shuffle(players);
                                        playerStream.push(players);
                                      }))),
+                         b.bind(playerStream.read.next(), function(players) {
+                           return players.length < 8 ? f.div() : 
+                             f.div(f.button('.btn span1', '/',
+                                           on.click(function() {
+                                             $(this).toggleClass('active');
+                                             if(players[0].pod) {
+                                               _.each(players, function(player) {player.pod = undefined})
+                                             } else {
+                                               var splittingIndex = (players.length / 2) % 2 == 1 ? 
+                                                 Math.ceil(players.length/2) + 1 :
+                                                 Math.ceil(players.length/2);
+                                               var firstHalf = players.slice(0, splittingIndex);
+                                               var secondHalf = players.slice(splittingIndex, players.length);
+                                               _.each(firstHalf, function(player) {player.pod = 1});
+                                               _.each(secondHalf, function(player) {player.pod = 2});}
+                                             playerStream.push(players);
+                                           })));
+                         }),
                          f.div(f.button('.btn span3', 'Pair for Round One',
                                         on.click(function(){
                                             pair.forFirstRound(players, matchStream);  
@@ -384,6 +402,7 @@ define(['foliage',
                    return f.div(_.map(currentPlayers, function(player) {
                      return f.div('.row',
                                   player.dropped ? '.dropped' : undefined,
+                                  player.pod ? player.pod == 1 ? '.pod1' : '.pod2' : undefined,
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
                                     if(!player.dropped)
