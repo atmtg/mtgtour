@@ -6,6 +6,7 @@ define(['foliage',
         'statistics',
         'pairing',
         'matchtable',
+        'timer',
         'store',
         'when'], 
        function(f, 
@@ -16,11 +17,11 @@ define(['foliage',
                 stats,
                 pair,
                 matchTable,
+                timer,
                 store,
                 when) {
 
   var NUM_ROUNDS = 3;
-  var ROUND_TIME = 3600;
 
   var activeTournament = store.load("activeTournament");
   var currentTournament = store.subStore(activeTournament || 'tournament');
@@ -55,7 +56,6 @@ define(['foliage',
       return loadPlayer(playerName);
   });
 
-
   phloem.each(playerStoreStream.read.next(), function(player) {
       var resultsToStore = _.map(player.results, function(result){
         return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
@@ -69,7 +69,7 @@ define(['foliage',
   var roundReportStream = phloem.stream();
   var swapPlayerStream = phloem.stream();
 
-  var roundTimerId, roundNumber = players.length > 0 ? _.max(players, function(player) {
+  var roundNumber = players.length > 0 ? _.max(players, function(player) {
     return player.results.length}).results.length + 1: 1;
 
 
@@ -103,7 +103,7 @@ define(['foliage',
   }
 
   var roundTimerRunning = function() {
-    return roundTimerId != undefined;
+    return timer.running();
   };
 
   function addPlayer(player) {
@@ -161,48 +161,49 @@ define(['foliage',
         match.registerResult( 2, 0);
       }
     })
-
-    var start = new Date().getTime();
-    roundTimerId = window.setInterval(function() {
-      var elapsed = new Date().getTime() - start;
-      var timeLeft = ROUND_TIME - Math.floor(elapsed/1000);
-      
+    
+    phloem.each(timer.read(), function(progress){
       var allMatchesFinished = true;
       _.map(matches, function(match) {
         allMatchesFinished &= (match.result !== undefined);
       })
 
-      roundReportStream.push({time:timeLeft, 
-                              roundFinished:allMatchesFinished, 
+      roundReportStream.push({roundFinished:allMatchesFinished, 
                               tournamentResult:undefined,
                               matches:matches})
-    }, 1000);
+    });
+    timer.start();
+  }
+
+  function timerDisplay() {
+      
+      return b.bind(timer.read(), function(progress) {
+          var minutes = progress.minutesRemaining;
+          var seconds = progress.secondsRemaining;
+
+          return f.div('#roundTimer', 
+                       f.span(progress.remaining <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                              {'class': progress.remaining <= 0 ? 'timerEnded' : ''}),
+                       f.button('.btn', f.i('.icon-plus'), on.click(function() {
+                           timer.extendBy(60);
+                       })),
+                       f.button('.btn', f.i('.icon-minus'), on.click(function() {
+                           timer.decreaseBy(60);
+                       })),
+                       f.div('.progress progress-striped',
+                             {'class':progress.remaining < 180 ? 'progress-danger' : 
+                              progress.remaining < 600 ? 'progress-warning' : 'progress-success'},
+                             f.div('.bar', {'style':'width:' + (progress.remaining/progress.total)*100 + '%' })))
+          });
+      
   }
 
   function roundReportPanel(roundReport) {
-    if(typeof roundReport == 'undefined' || roundReport.tournamentResult) return f.div();
-
-    var minutes = roundReport.time/60 < 10 ? '0' + 
-      Math.floor(roundReport.time/60) : Math.floor(roundReport.time/60);
-    var seconds = roundReport.time%60 < 10 ? '0' + 
-      roundReport.time%60 : roundReport.time%60;
-    f.i =   f.element('i');
+    if(!roundReport || roundReport.tournamentResult) return f.div();
+    f.i = f.element('i');
     return f.div('#roundPanel', 
                  f.div('#roundTitle', f.span('Round ' + roundNumber)),
-                 f.div('#roundTimer', 
-                       f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                              {'class': roundReport.time <= 0 ? 'timerEnded' : ''}),
-                       f.button('.btn', f.i('.icon-plus'), on.click(function() {
-                           ROUND_TIME += 60;
-                           
-                       })),
-                       f.button('.btn', f.i('.icon-minus'), on.click(function() {
-                           ROUND_TIME -= 60;
-                       })),
-                       f.div('.progress progress-striped',
-                             {'class':roundReport.time < 180 ? 'progress-danger' : 
-                              roundReport.time < 600 ? 'progress-warning' : 'progress-success'},
-                             f.div('.bar', {'style':'width:' + (roundReport.time/ROUND_TIME)*100 + '%' }))));
+                 timerDisplay());
   }
 
   function buttonToStartRound(matches) {
@@ -223,8 +224,7 @@ define(['foliage',
                'Finish round and show results',
                on.click(function() {
                  $(this).fadeOut();
-                 window.clearInterval(roundTimerId);
-                 roundTimerId = undefined;
+                 timer.stop();
                  reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
   };
@@ -306,8 +306,8 @@ define(['foliage',
     } else {
       matches = undefined;
       matchStream.push(matches);
-      roundReportStream.push({time:ROUND_TIME, 
-                              roundFinished:false, 
+      
+      roundReportStream.push({roundFinished:false, 
                               tournamentResult:'Standings after Final Round:'});
     }
   };
@@ -346,8 +346,9 @@ define(['foliage',
            function(matches) {
              if(matches && matches.length > 0) {
                  $('#newplayer').hide();
-                 roundReportStream.push({time:ROUND_TIME, 
-                                         roundFinished:false, tournamentResult:undefined});
+                 roundReportStream.push({roundFinished:false, 
+                                         tournamentResult:undefined});
+                 timer.update();
              }
              return buttonToStartRound(matches);
            }),
