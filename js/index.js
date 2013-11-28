@@ -186,12 +186,19 @@ define(['foliage',
       Math.floor(roundReport.time/60) : Math.floor(roundReport.time/60);
     var seconds = roundReport.time%60 < 10 ? '0' + 
       roundReport.time%60 : roundReport.time%60;
-      
+    f.i =   f.element('i');
     return f.div('#roundPanel', 
                  f.div('#roundTitle', f.span('Round ' + roundNumber)),
                  f.div('#roundTimer', 
                        f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
                               {'class': roundReport.time <= 0 ? 'timerEnded' : ''}),
+                       f.button('.btn', f.i('.icon-plus'), on.click(function() {
+                           ROUND_TIME += 60;
+                           
+                       })),
+                       f.button('.btn', f.i('.icon-minus'), on.click(function() {
+                           ROUND_TIME -= 60;
+                       })),
                        f.div('.progress progress-striped',
                              {'class':roundReport.time < 180 ? 'progress-danger' : 
                               roundReport.time < 600 ? 'progress-warning' : 'progress-success'},
