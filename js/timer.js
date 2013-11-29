@@ -37,7 +37,6 @@ define(['phloem'],function(p){
         stop:function(){
             window.clearInterval(roundTimerId);
             roundTimerId = undefined;
-            update();
         },
         extendBy:function(time){total += time; update();},
         decreaseBy:function(time){total -= time; update();}
