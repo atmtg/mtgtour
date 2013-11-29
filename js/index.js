@@ -322,7 +322,8 @@ define(['foliage',
                                                    addPlayer({name:bus.player_name(),
                                                               results:[],
                                                               resultStream:phloem.stream(),
-                                                              dropped:false});
+                                                              dropped:false,
+                                                              pod:1});
                                                    $('#player_name').select();
                                                  }})))),
                    f.div('.row',
@@ -336,10 +337,10 @@ define(['foliage',
                          b.bind(playerStream.read.next(), function(players) {
                            return players.length < 8 ? f.div() : 
                              f.div(f.button('.btn span1', '/',
+                                            _.find(players, function(player) {return player.pod == 2}) ? '.active' : undefined,
                                            on.click(function() {
-                                             $(this).toggleClass('active');
-                                             if(players[0].pod) {
-                                               _.each(players, function(player) {player.pod = undefined})
+                                             if($(this).hasClass('active')) {
+                                               _.each(players, function(player) {player.pod = 1})
                                              } else {
                                                var splittingIndex = (players.length / 2) % 2 == 1 ? 
                                                  Math.ceil(players.length/2) + 1 :
