@@ -226,6 +226,7 @@ define(['foliage',
                on.click(function() {
                  $(this).fadeOut();
                  timer.stop();
+                 timer.reset();
                  reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
   };
