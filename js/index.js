@@ -184,12 +184,13 @@ define(['foliage',
           return f.div('#roundTimer', 
                        f.span(progress.remaining <= 0 ? 'TIME' : minutes + ':' + seconds, 
                               {'class': progress.remaining <= 0 ? 'timerEnded' : ''}),
-                       f.button('.btn', f.i('.icon-plus'), on.click(function() {
-                           timer.extendBy(60);
-                       })),
-                       f.button('.btn', f.i('.icon-minus'), on.click(function() {
-                           timer.decreaseBy(60);
-                       })),
+                       f.div('.btn-group btn-group-vertical pull-right', 
+                             f.button('.btn btn-success btn-small', f.i('.icon-plus'), on.click(function() {
+                               timer.extendBy(60);
+                             })),
+                             f.button('.btn btn-danger btn-small', f.i('.icon-minus'), on.click(function() {
+                               timer.decreaseBy(60);
+                             }))),
                        f.div('.progress progress-striped',
                              {'class':progress.remaining < 180 ? 'progress-danger' : 
                               progress.remaining < 600 ? 'progress-warning' : 'progress-success'},
