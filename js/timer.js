@@ -19,6 +19,18 @@ define(['phloem'],function(p){
         });
     };
 
+    function running() {
+      return roundTimerId !== undefined;
+    };
+
+    function extendBy(time) {
+      if(!running()) {
+        ROUND_TIME += time;
+      };
+      total += time;
+      update();
+    };
+    
     return {
         start: function(updateInterval) {
             total = ROUND_TIME;
@@ -32,13 +44,13 @@ define(['phloem'],function(p){
             };
         },
         update:update,
-        running: function(){return roundTimerId !== undefined},
+        running:running,
         read:function(){return timerStream.read.next()},
         stop:function(){
             window.clearInterval(roundTimerId);
             roundTimerId = undefined;
         },
-        extendBy:function(time){total += time; update();},
-        decreaseBy:function(time){total -= time; update();}
+        extendBy:extendBy,
+        decreaseBy:function(time){extendBy(-time);}
     }
 });
