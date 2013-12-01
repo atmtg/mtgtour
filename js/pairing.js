@@ -1,12 +1,17 @@
 define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
 
-  function forFirstRound(players, matchStream) {
+  function pairAcross(players) {
     var firstHalf = players.slice(0,Math.ceil(players.length/2));
     var secondHalf = players.slice(Math.ceil(players.length/2), players.length);
     var pairings = _.zip(firstHalf, secondHalf);
-    var matches = _.map(pairings, function(pairing) {
+    return _.map(pairings, function(pairing) {
       return createMatch(pairing);
     });
+  };
+
+  function forFirstRound(players, matchStream) {
+    var matches = pairAcross(_.filter(players, {'pod':1})).
+      concat(pairAcross(_.filter(players, {'pod':2})));
     matchStream.push(matches);
   };
 
