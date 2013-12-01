@@ -334,7 +334,7 @@ define(['foliage',
                                     playerStream.push(players);
                                   })),
                          f.button('.btn', {'style':'margin-right:10px'},
-                                  'split',
+                                  'Split',
                                   tooltip('Toggle Split into Two Draft Pods'),
                                   _.find(players, function(player) {return player.pod == 2}) ? '.active' : undefined,
                                   on.click(function() {
