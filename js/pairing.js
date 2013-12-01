@@ -87,9 +87,7 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
     return maxIndex;
   };
 
-  function forNextRound(players, matchStream) {
-    var players = _.shuffle(_.filter(players, {dropped : false}));
-
+  function pairOnPoints(players) {
     var playersAndPoints = [];
     _.map(players, function(player) {
       playersAndPoints = 
@@ -103,26 +101,34 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
     while(playersAndPoints.length > 0) {
       var listOfPlayersWithMinByes = playersWithMinimumNumberOfByes(playersAndPoints);
       if(!byeGivenThisRound && ((playersAndPoints.length%2 == 1 && listOfPlayersWithMinByes.length == 1) ||
-                       (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
+                                (playersAndPoints.length%2 == 0 && listOfPlayersWithMinByes.length == 2))) {
         matches = matches.concat([
-            createMatch([playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
-                                            undefined])
+          createMatch([playersAndPoints[listOfPlayersWithMinByes[0]].thePlayer,
+                       undefined])
         ]);
         playersAndPoints.splice(listOfPlayersWithMinByes[0], 1);
         byeGivenThisRound = true;
         continue;
       } 
-
+      
       var indexOfPlayer1 = maxPoints(playersAndPoints);
       var ply1 = playersAndPoints[indexOfPlayer1].thePlayer;
       playersAndPoints.splice(indexOfPlayer1, 1);
-
+      
       var leastFrequentOpponentIndexes = leastFrequentOpponents(playersAndPoints, ply1)
       var indexOfPlayer2 = maxPoints(playersAndPoints, leastFrequentOpponentIndexes);
       var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
       playersAndPoints.splice(indexOfPlayer2, 1);
       matches = matches.concat([createMatch([ply1, ply2])]);
     };
+    return matches;
+  }
+
+  function forNextRound(players, matchStream) {
+    var players = _.shuffle(_.filter(players, {dropped : false}));
+    
+    var matches = pairOnPoints(_.filter(players, {'pod':1})).
+      concat(pairOnPoints(_.filter(players, {'pod':2})));
 
     matchStream.push(matches);
   };
