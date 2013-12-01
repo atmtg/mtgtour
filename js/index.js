@@ -336,7 +336,6 @@ define(['foliage',
                          f.button('.btn', {'style':'margin-right:10px'},
                                   'Split',
                                   tooltip('Toggle Split into Two Draft Pods'),
-                                  _.find(players, function(player) {return player.pod == 2}) ? '.active' : undefined,
                                   on.click(function() {
                                     if($(this).hasClass('active')) {
                                       _.each(players, function(player) {player.pod = 1})
@@ -349,6 +348,7 @@ define(['foliage',
                                           _.each(firstHalf, function(player) {player.pod = 1});
                                           _.each(secondHalf, function(player) {player.pod = 2});}
                                     playerStream.push(players);
+                                    $(this).toggleClass('active');
                                   })),
                          f.button('.btn', 'Pair for Round One',
                                   on.click(function(){
