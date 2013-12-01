@@ -327,35 +327,33 @@ define(['foliage',
                                                    $('#player_name').select();
                                                  }})))),
                    f.div('.row',
-                         f.div('.span1', 
-                               f.button('#randomize_button', '.btn', f.i('.icon-random'),
-                                     tooltip('Randomize Seating for Draft'),
-                                     on.click(function(){
-                                       players = _.shuffle(players);
-                                       playerStream.push(players);
-                                     }))),
-                         b.bind(playerStream.read.next(), function(players) {
-                           return players.length < 8 ? f.div() : 
-                             f.div(f.button('.btn span1', '/',
-                                            _.find(players, function(player) {return player.pod == 2}) ? '.active' : undefined,
-                                           on.click(function() {
-                                             if($(this).hasClass('active')) {
-                                               _.each(players, function(player) {player.pod = 1})
-                                             } else {
-                                               var splittingIndex = (players.length / 2) % 2 == 1 ? 
-                                                 Math.ceil(players.length/2) + 1 :
-                                                 Math.ceil(players.length/2);
-                                               var firstHalf = players.slice(0, splittingIndex);
-                                               var secondHalf = players.slice(splittingIndex, players.length);
-                                               _.each(firstHalf, function(player) {player.pod = 1});
-                                               _.each(secondHalf, function(player) {player.pod = 2});}
-                                             playerStream.push(players);
-                                           })));
-                         }),
-                         f.div(f.button('.btn span3', 'Pair for Round One',
-                                        on.click(function(){
-                                            pair.forFirstRound(players, matchStream);  
-                                        })))))}),
+                         f.button('.btn', {'style':'margin-right:10px;height:2.2em'}, f.i('.icon-random'),
+                                  tooltip('Randomize Seating for Draft'),
+                                  on.click(function(){
+                                    players = _.shuffle(players);
+                                    playerStream.push(players);
+                                  })),
+                         f.button('.btn', {'style':'margin-right:10px'},
+                                  'split',
+                                  tooltip('Toggle Split into Two Draft Pods'),
+                                  _.find(players, function(player) {return player.pod == 2}) ? '.active' : undefined,
+                                  on.click(function() {
+                                    if($(this).hasClass('active')) {
+                                      _.each(players, function(player) {player.pod = 1})
+                                        } else {
+                                          var splittingIndex = (players.length / 2) % 2 == 1 ? 
+                                            Math.ceil(players.length/2) + 1 :
+                                            Math.ceil(players.length/2);
+                                          var firstHalf = players.slice(0, splittingIndex);
+                                          var secondHalf = players.slice(splittingIndex, players.length);
+                                          _.each(firstHalf, function(player) {player.pod = 1});
+                                          _.each(secondHalf, function(player) {player.pod = 2});}
+                                    playerStream.push(players);
+                                  })),
+                         f.button('.btn', 'Pair for Round One',
+                                  on.click(function(){
+                                    pair.forFirstRound(players, matchStream);  
+                                  }))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
            function(matches) {
