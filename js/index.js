@@ -70,7 +70,7 @@ define(['foliage',
         return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
       });
 
-      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped};
+      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped, pod:player.pod};
       playerStore.save(player.name, playerToStore);
   });
 
@@ -345,8 +345,14 @@ define(['foliage',
                                             Math.ceil(players.length/2);
                                           var firstHalf = players.slice(0, splittingIndex);
                                           var secondHalf = players.slice(splittingIndex, players.length);
-                                          _.each(firstHalf, function(player) {player.pod = 1});
-                                          _.each(secondHalf, function(player) {player.pod = 2});}
+                                          _.each(firstHalf, function(player) {
+                                            player.pod = 1;
+                                            playerStoreStream.push(player);
+                                          });
+                                          _.each(secondHalf, function(player) {
+                                            player.pod = 2;
+                                            playerStoreStream.push(player);
+                                          });}
                                     playerStream.push(players);
                                     $(this).toggleClass('active');
                                   })),
