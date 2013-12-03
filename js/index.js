@@ -363,6 +363,9 @@ define(['foliage',
     f.div('#backdrop'),
     b.bind(matchStream.read,
            function(matches) {
+             var topValue = _.size(matches) > 0 ? 30 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
+             console.log(topValue);
+             $('#players').css({'top': (50 + topValue) + '%'});
              return createMatchTables(matches)}),
     b.bind(matchStream.read,
            function(matches) {
