@@ -53,6 +53,16 @@ define(['foliage',
            $('.matchtable').each(function() {$(this).find('.bottomButtonPanel').fadeOut()});
            $('.matchtable').each(function() {$(this).find('.topButtonPanel').fadeOut()});
          }
+
+         function toggleShowButtonPanels(element) {
+           var currentlyVisible = $(element).parents('#table').find('.topButtonPanel').is(':visible');
+           hideAllButtons();
+           if(!currentlyVisible) {
+             $(element).parents('#table').find('.topButtonPanel').fadeToggle();
+             $(element).parents('#table').find('.rightButtonPanel').fadeToggle();
+             $(element).parents('#table').find('.bottomButtonPanel').fadeToggle();
+           };
+         }
   
          return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
            var player1 = match.players[0];
@@ -69,8 +79,7 @@ define(['foliage',
                         f.div(f.div('.matchTableSurface'),
                               f.div('.player1Side', on.click(function() {
                                 if(player2 && roundTimerRunning()) {
-                                  hideAllButtons();
-                                  $(this).parents('#table').find('.topButtonPanel').fadeToggle();
+                                  toggleShowButtonPanels(this);
                                 } else {
                                   selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 0)();
                                 }
@@ -78,18 +87,16 @@ define(['foliage',
                               f.div('.noMansLand', 
                                     tooltip('If Round has Not Started; Click a Player Name to Select that Player and then another Player Name to Swap Chairs. Otherwise, Click Table to Register Match Result.'), 
                                     on.click(function() {
-                                if(player2 && roundTimerRunning()) {
-                                  hideAllButtons();
-                                  $(this).parents('#table').find('.rightButtonPanel').fadeToggle();}
-                              }), b.bind(match.reportStream.read.next(), function(results) {                             
-                                return f.div('.matchResult', 
-                                             f.span(parseResultString(player1, player2, results)));
-                              })),
+                                      if(player2 && roundTimerRunning()) {
+                                        toggleShowButtonPanels(this);
+                                      } 
+                                    }), b.bind(match.reportStream.read.next(), function(results) {                             
+                                      return f.div('.matchResult', 
+                                                   f.span(parseResultString(player1, player2, results)));
+                                    })),
                               f.div('.player2Side', on.click(function() {
-
                                 if(player2 && roundTimerRunning()) {
-                                  hideAllButtons();
-                                  $(this).parents('#table').find('.bottomButtonPanel').fadeToggle();
+                                  toggleShowButtonPanels(this);
                                 } else if (player2){
                                   selectOrMove(this, swapPlayerStream, playerClicked, matchStream, matches, match, 1)();
                                 }
@@ -101,17 +108,22 @@ define(['foliage',
                                 match.registerResult( 2, 1);})),
                               f.button('.btn', '1-0', on.click(function(){
                                 match.registerResult( 1, 0);}))),
-                        f.div('.rightButtonPanel', {'style':'display:none'}, 
-                              f.button('.btn', '0-0-z', on.click(function(){
-                                match.registerResult( 0, 0);})),
-                              f.button('.btn', '1-1-z', on.click(function(){
-                                match.registerResult( 1, 1);})),
-                              f.button('.btn', 'x-y-1', on.click(function(){
-                                match.registerDraw(1);})),
-                              f.button('.btn', 'x-y-2', on.click(function(){
-                                match.registerDraw(2);})),
-                              f.button('.btn', 'x-y-3', on.click(function(){
-                                match.registerDraw(3);}))),
+                        f.div('.rightButtonPanel btn-group-vertical', {'style':'display:none'}, 
+                              f.button('.btn', {'style':'width:5em'},
+                                       '0-0', on.click(function(){
+                                         match.registerResult( 0, 0);})),
+                              f.button('.btn', {'style':'width:5em'},
+                                       '1-1', on.click(function(){
+                                         match.registerResult( 1, 1);})),
+                              f.button('.btn', {'style':'width:5em'},
+                                       'x-y-1', on.click(function(){
+                                         match.registerDraw(1);})),
+                              f.button('.btn', {'style':'width:5em'}, 
+                                       'x-y-2', on.click(function(){
+                                         match.registerDraw(2);})),
+                              f.button('.btn', {'style':'width:5em'}, 
+                                       'x-y-3', on.click(function(){
+                                         match.registerDraw(3);}))),
                         f.div('.bottomButtonPanel', {'style':'display:none'},
                               f.button('.btn', '0-1', on.click(function(){
                                 match.registerResult( 0, 1);})),

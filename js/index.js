@@ -70,7 +70,7 @@ define(['foliage',
         return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
       });
 
-      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped};
+      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped, pod:player.pod};
       playerStore.save(player.name, playerToStore);
   });
 
@@ -205,13 +205,13 @@ define(['foliage',
   }
 
   function buttonToStartRound(matches) {
-    return _.size(matches) > 0 ? f.div(
+    return _.size(matches) > 0 ? f.div('#startRoundButton',
       f.button('.btn roundButton',
                'Start round',
                on.click(function(){
                  handleRound(matches);
                  $(this).fadeOut();
-               }))) : f.div();
+               }))) : f.div('#startRoundButton');
   };
 
   function buttonToFinishRoundAndPairNext(roundReport) {
@@ -314,7 +314,7 @@ define(['foliage',
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
-                   f.div('.row', f.div('.span4', 
+                   f.div('.row', f.div('.span5', 
                                        f.input('#player_name', {'type': 'text', 
                                                                 'placeholder':'Player name'}, bus.expose,
                                                on.keypress(function(event) {
@@ -322,24 +322,49 @@ define(['foliage',
                                                    addPlayer({name:bus.player_name(),
                                                               results:[],
                                                               resultStream:phloem.stream(),
-                                                              dropped:false});
+                                                              dropped:false,
+                                                              pod:1});
                                                    $('#player_name').select();
                                                  }})))),
                    f.div('.row',
-                         f.div('.span1', 
-                               f.button('#randomize_button', '.btn', f.i('.icon-random'),
-                                     tooltip('Randomize Seating for Draft'),
-                                     on.click(function(){
-                                       players = _.shuffle(players);
-                                       playerStream.push(players);
-                                     }))),
-                         f.div(f.button('.btn span3', 'Pair for Round One',
-                                        on.click(function(){
-                                            pair.forFirstRound(players, matchStream);  
-                                        })))))}),
+                         f.button('.btn', {'style':'margin-right:10px;height:2.2em'}, f.i('.icon-random'),
+                                  tooltip('Randomize Seating for Draft'),
+                                  on.click(function(){
+                                    players = _.shuffle(players);
+                                    playerStream.push(players);
+                                  })),
+                         f.button('.btn', {'style':'margin-right:10px'},
+                                  'Split',
+                                  tooltip('Toggle Split into Two Draft Pods'),
+                                  on.click(function() {
+                                    if($(this).hasClass('active')) {
+                                      _.each(players, function(player) {player.pod = 1})
+                                        } else {
+                                          var splittingIndex = (players.length / 2) % 2 == 1 ? 
+                                            Math.ceil(players.length/2) + 1 :
+                                            Math.ceil(players.length/2);
+                                          var firstHalf = players.slice(0, splittingIndex);
+                                          var secondHalf = players.slice(splittingIndex, players.length);
+                                          _.each(firstHalf, function(player) {
+                                            player.pod = 1;
+                                            playerStoreStream.push(player);
+                                          });
+                                          _.each(secondHalf, function(player) {
+                                            player.pod = 2;
+                                            playerStoreStream.push(player);
+                                          });}
+                                    playerStream.push(players);
+                                    $(this).toggleClass('active');
+                                  })),
+                         f.button('.btn', 'Pair for Round One',
+                                  on.click(function(){
+                                    pair.forFirstRound(players, matchStream);  
+                                  }))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
            function(matches) {
+             var topValue = _.size(matches) > 0 ? 33 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
+             $('#players').css({'top': (50 + topValue) + '%'});
              return createMatchTables(matches)}),
     b.bind(matchStream.read,
            function(matches) {
@@ -384,6 +409,7 @@ define(['foliage',
                    return f.div(_.map(currentPlayers, function(player) {
                      return f.div('.row',
                                   player.dropped ? '.dropped' : undefined,
+                                  player.pod ? player.pod == 1 ? '.pod1' : '.pod2' : undefined,
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
                                     if(!player.dropped)
