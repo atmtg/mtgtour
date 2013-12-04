@@ -6,6 +6,7 @@ define(['foliage',
         'statistics',
         'pairing',
         'matchtable',
+        'timer',
         'store',
         'when'], 
        function(f, 
@@ -16,14 +17,22 @@ define(['foliage',
                 stats,
                 pair,
                 matchTable,
+                timer,
                 store,
                 when) {
 
   var NUM_ROUNDS = 3;
-  var ROUND_TIME = 3600;
+
+  var matchPoints = stats.matchPoints;
+  var matchWinPercentage = stats.matchWinPercentage; 
+  var gameWinPercentage = stats.gameWinPercentage;
+  var opponentsMatchWinPercentage = stats.opponentsMatchWinPercentage;
+  var opponentsGameWinPercentage = stats.opponentsGameWinPercentage;
 
   var activeTournament = store.load("activeTournament");
   var currentTournament = store.subStore(activeTournament || 'tournament');
+
+  var matchStream = phloem.stream(), playerStream = phloem.stream();
 
   var pairings = currentTournament.load("pairings") || [];
   var playerStore = currentTournament.subStore("players");
@@ -51,49 +60,42 @@ define(['foliage',
       return loadedPlayers[playerName] || doLoad();
   };
 
-  var players = _.map(playerStore.ls(), function(playerName) {
-      return loadPlayer(playerName);
-  });
-
+  var players = sortPlayers(_.map(playerStore.ls(), function(playerName) {
+    return loadPlayer(playerName);
+  }));
+  playerStream.push(players);
 
   phloem.each(playerStoreStream.read.next(), function(player) {
       var resultsToStore = _.map(player.results, function(result){
         return {wins:result.wins, loss:result.loss, draw:result.draw, opponentName:result.opponentName}; 
       });
 
-      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped};
+      var playerToStore = {name: player.name, results:resultsToStore, dropped:player.dropped, pod:player.pod};
       playerStore.save(player.name, playerToStore);
   });
 
-  var matchStream = phloem.stream(), playerStream = phloem.stream();
   var roundReportStream = phloem.stream();
   var swapPlayerStream = phloem.stream();
 
-  var roundTimerId, roundNumber = players.length > 0 ? _.max(players, function(player) {
+  var roundNumber = players.length > 0 ? _.max(players, function(player) {
     return player.results.length}).results.length + 1: 1;
 
 
   when(matchStream.read.next()).then(function(elem) {
-      console.log("next match element", elem);
-      phloem.each(elem.next(), function(matches) {
-          currentTournament.save('pairings', 
-                                 _.map(matches, function(match) {
-                                     return _.map(match.players, function(player) {
-                                         return player && player.name;
-                                     });
-                                 }));
-      });
+    phloem.each(elem.next(), function(matches) {
+      currentTournament.save('pairings', 
+                             _.map(matches, function(match) {
+                               return _.map(match.players, function(player) {
+                                 return player && player.name;
+                               });
+                             }));
+    });
   });
 
   matchStream.push(_.map(pairings, function(pairing) {
       return pair.createMatch(_.map(pairing, loadPlayer));
   }));
-
-
            
-
-  playerStream.push(players);
-
   var tooltip = function(text) {
     return function(parent) {
       parent.attr('title', text);
@@ -103,7 +105,7 @@ define(['foliage',
   }
 
   var roundTimerRunning = function() {
-    return roundTimerId != undefined;
+    return timer.running();
   };
 
   function addPlayer(player) {
@@ -112,12 +114,6 @@ define(['foliage',
     playerStream.push(players);
   };
          
-  var matchPoints = stats.matchPoints;
-  var matchWinPercentage = stats.matchWinPercentage; 
-  var gameWinPercentage = stats.gameWinPercentage;
-  var opponentsMatchWinPercentage = stats.opponentsMatchWinPercentage;
-  var opponentsGameWinPercentage = stats.opponentsGameWinPercentage;
-
   var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
@@ -161,51 +157,61 @@ define(['foliage',
         match.registerResult( 2, 0);
       }
     })
-
-    var start = new Date().getTime();
-    roundTimerId = window.setInterval(function() {
-      var elapsed = new Date().getTime() - start;
-      var timeLeft = ROUND_TIME - Math.floor(elapsed/1000);
-      
-      var allMatchesFinished = true;
+    
+    phloem.each(timer.read(), function(progress){
+      var allMatchesFinished = true && timer.running();
       _.map(matches, function(match) {
         allMatchesFinished &= (match.result !== undefined);
       })
 
-      roundReportStream.push({time:timeLeft, 
-                              roundFinished:allMatchesFinished, 
+      roundReportStream.push({roundFinished:allMatchesFinished, 
                               tournamentResult:undefined,
                               matches:matches})
-    }, 1000);
+    });
+    timer.start();
+  }
+
+  function timerDisplay() {
+      
+      return b.bind(timer.read(), function(progress) {
+          var minutes = progress.minutesRemaining;
+          var seconds = progress.secondsRemaining;
+
+          return f.div('#roundTimer', 
+                       f.span(progress.remaining <= 0 ? 'TIME' : minutes + ':' + seconds, 
+                              {'class': progress.remaining <= 0 ? 'timerEnded' : ''}),
+                       f.div('.btn-group-vertical pull-right', {'style':'margin-left:0.2em; margin-top:-0.1em'},
+                             
+                             f.button('.btn btn-small', f.i('.icon-plus'), on.click(function() {
+                               timer.extendBy(60);
+                             })),
+                             f.button('.btn btn-small', f.i('.icon-minus'), on.click(function() {
+                               timer.decreaseBy(60);
+                             }))),
+                       f.div('.progress progress-striped',
+                             {'class':progress.remaining < 180 ? 'progress-danger' : 
+                              progress.remaining < 600 ? 'progress-warning' : 'progress-success'},
+                             f.div('.bar', {'style':'width:' + (progress.remaining/progress.total)*100 + '%' })))
+          });
+      
   }
 
   function roundReportPanel(roundReport) {
-    if(typeof roundReport == 'undefined' || roundReport.tournamentResult) return f.div();
-
-    var minutes = roundReport.time/60 < 10 ? '0' + 
-      Math.floor(roundReport.time/60) : Math.floor(roundReport.time/60);
-    var seconds = roundReport.time%60 < 10 ? '0' + 
-      roundReport.time%60 : roundReport.time%60;
-      
+    if(!roundReport || roundReport.tournamentResult) return f.div();
+    f.i = f.element('i');
     return f.div('#roundPanel', 
                  f.div('#roundTitle', f.span('Round ' + roundNumber)),
-                 f.div('#roundTimer', 
-                       f.span(roundReport.time <= 0 ? 'TIME' : minutes + ':' + seconds, 
-                              {'class': roundReport.time <= 0 ? 'timerEnded' : ''}),
-                       f.div('.progress progress-striped',
-                             {'class':roundReport.time < 180 ? 'progress-danger' : 
-                              roundReport.time < 600 ? 'progress-warning' : 'progress-success'},
-                             f.div('.bar', {'style':'width:' + (roundReport.time/ROUND_TIME)*100 + '%' }))));
+                 timerDisplay());
   }
 
   function buttonToStartRound(matches) {
-    return _.size(matches) > 0 ? f.div(
+    return _.size(matches) > 0 ? f.div('#startRoundButton',
       f.button('.btn roundButton',
                'Start round',
                on.click(function(){
                  handleRound(matches);
                  $(this).fadeOut();
-               }))) : f.div();
+               }))) : f.div('#startRoundButton');
   };
 
   function buttonToFinishRoundAndPairNext(roundReport) {
@@ -216,8 +222,8 @@ define(['foliage',
                'Finish round and show results',
                on.click(function() {
                  $(this).fadeOut();
-                 window.clearInterval(roundTimerId);
-                 roundTimerId = undefined;
+                 timer.stop();
+                 timer.reset();
                  reportResultsAndPairForNextRound(roundReport.matches, players);
                })) : f.div();
   };
@@ -299,8 +305,8 @@ define(['foliage',
     } else {
       matches = undefined;
       matchStream.push(matches);
-      roundReportStream.push({time:ROUND_TIME, 
-                              roundFinished:false, 
+      
+      roundReportStream.push({roundFinished:false, 
                               tournamentResult:'Standings after Final Round:'});
     }
   };
@@ -308,7 +314,7 @@ define(['foliage',
   return f.div(
     b.bus(function(bus) {
       return f.div('#newplayer',
-                   f.div('.row', f.div('.span4', 
+                   f.div('.row', f.div('.span5', 
                                        f.input('#player_name', {'type': 'text', 
                                                                 'placeholder':'Player name'}, bus.expose,
                                                on.keypress(function(event) {
@@ -316,31 +322,57 @@ define(['foliage',
                                                    addPlayer({name:bus.player_name(),
                                                               results:[],
                                                               resultStream:phloem.stream(),
-                                                              dropped:false});
+                                                              dropped:false,
+                                                              pod:1});
                                                    $('#player_name').select();
                                                  }})))),
                    f.div('.row',
-                         f.div('.span1', 
-                               f.img('#randomize_button', '.btn', {'src':'img/media-shuffle.png'},
-                                     tooltip('Randomize Seating for Draft'),
-                                     on.click(function(){
-                                       players = _.shuffle(players);
-                                       playerStream.push(players);
-                                     }))),
-                         f.div(f.button('.btn span3', 'Pair for Round One',
-                                        on.click(function(){
-                                            pair.forFirstRound(players, matchStream);  
-                                        })))))}),
+                         f.button('.btn', {'style':'margin-right:10px;height:2.2em'}, f.i('.icon-random'),
+                                  tooltip('Randomize Seating for Draft'),
+                                  on.click(function(){
+                                    players = _.shuffle(players);
+                                    playerStream.push(players);
+                                  })),
+                         f.button('.btn', {'style':'margin-right:10px'},
+                                  'Split',
+                                  tooltip('Toggle Split into Two Draft Pods'),
+                                  on.click(function() {
+                                    if($(this).hasClass('active')) {
+                                      _.each(players, function(player) {player.pod = 1})
+                                        } else {
+                                          var splittingIndex = (players.length / 2) % 2 == 1 ? 
+                                            Math.ceil(players.length/2) + 1 :
+                                            Math.ceil(players.length/2);
+                                          var firstHalf = players.slice(0, splittingIndex);
+                                          var secondHalf = players.slice(splittingIndex, players.length);
+                                          _.each(firstHalf, function(player) {
+                                            player.pod = 1;
+                                            playerStoreStream.push(player);
+                                          });
+                                          _.each(secondHalf, function(player) {
+                                            player.pod = 2;
+                                            playerStoreStream.push(player);
+                                          });}
+                                    playerStream.push(players);
+                                    $(this).toggleClass('active');
+                                  })),
+                         f.button('.btn', 'Pair for Round One',
+                                  on.click(function(){
+                                    pair.forFirstRound(players, matchStream);  
+                                  }))))}),
     f.div('#backdrop'),
     b.bind(matchStream.read,
            function(matches) {
+             var topValue = _.size(matches) > 0 ? 33 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
+             $('#players').css({'top': (50 + topValue) + '%'});
              return createMatchTables(matches)}),
     b.bind(matchStream.read,
            function(matches) {
              if(matches && matches.length > 0) {
                  $('#newplayer').hide();
-                 roundReportStream.push({time:ROUND_TIME, 
-                                         roundFinished:false, tournamentResult:undefined});
+                 roundReportStream.push({roundFinished:false, 
+                                         tournamentResult:undefined});
+                 timer.update();
              }
              return buttonToStartRound(matches);
            }),
@@ -377,6 +409,7 @@ define(['foliage',
                    return f.div(_.map(currentPlayers, function(player) {
                      return f.div('.row',
                                   player.dropped ? '.dropped' : undefined,
+                                  player.pod ? player.pod == 1 ? '.pod1' : '.pod2' : undefined,
                                   on.hover(function() {
                                     $(this).toggleClass('emphasized');
                                     if(!player.dropped)
