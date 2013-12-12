@@ -125,11 +125,11 @@ define(['foliage',
                                        'x-y-3', on.click(function(){
                                          match.registerDraw(3);}))),
                         f.div('.bottomButtonPanel', {'style':'display:none'},
-                              f.button('.btn', '0-1', on.click(function(){
-                                match.registerResult( 0, 1);})),
-                              f.button('.btn', '1-2', on.click(function(){
+                              f.button('.btn', '2-0', on.click(function(){
+                                match.registerResult( 0, 2);})),
+                              f.button('.btn', '2-1', on.click(function(){
                                 match.registerResult( 1, 2);})),
-                              f.button('.btn', '0-2', on.click(function(){
-                                match.registerResult( 0, 2);}))));
+                              f.button('.btn', '1-0', on.click(function(){
+                                match.registerResult( 0, 1);}))));
          };
        })
