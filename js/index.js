@@ -158,7 +158,8 @@ define(['foliage',
       }
     })
     
-    phloem.each(timer.read(), function(progress){
+    phloem.each(timer.read().read.next(), function(progress){
+      console.log("timer running: ", timer.running())
       var allMatchesFinished = true && timer.running();
       _.map(matches, function(match) {
         allMatchesFinished &= (match.result !== undefined);
