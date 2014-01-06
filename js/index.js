@@ -173,7 +173,7 @@ define(['foliage',
 
   function timerDisplay() {
       
-      return b.bind(timer.read(), function(progress) {
+      return b.bind(timer.read().read.next(), function(progress) {
           var minutes = progress.minutesRemaining;
           var seconds = progress.secondsRemaining;
 
