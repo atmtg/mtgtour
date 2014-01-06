@@ -47,14 +47,10 @@ define(['phloem'],function(p){
       roundTimerId = window.setInterval(function() {
         update();
       }, updateInterval || 1000);
-      
-      return {
-        startedAt: start
-      };
     },
     update:update,
     running:running,
-    read:function(){return timerStream.read.next()},
+    read:function(){return timerStream},
     stop:function(){
       window.clearInterval(roundTimerId);
       roundTimerId = undefined;
