@@ -106,54 +106,54 @@ define(['foliage',
                         f.div('.topButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
                                 match.registerResult( 2, 0);
-                                updateRound();
+                                updateRound(matches);
                               })),
                               f.button('.btn', '2-1', on.click(function(){
                                 match.registerResult( 2, 1);
-                                updateRound();
+                                updateRound(matches);
                               })),
                               f.button('.btn', '1-0', on.click(function(){
                                 match.registerResult( 1, 0);
-                                updateRound();
+                                updateRound(matches);
                               }))),
                         f.div('.rightButtonPanel btn-group-vertical', {'style':'display:none'}, 
                               f.button('.btn', {'style':'width:5em'},
                                        '0-0', on.click(function(){
                                            match.registerResult( 0, 0);
-                                           updateRound();
+                                           updateRound(matches);
                                        })),
                               f.button('.btn', {'style':'width:5em'},
                                        '1-1', on.click(function(){
                                            match.registerResult( 1, 1);
-                                           updateRound();
+                                           updateRound(matches);
                                        })),
                               f.button('.btn', {'style':'width:5em'},
                                        'x-y-1', on.click(function(){
                                            match.registerDraw(1);
-                                           updateRound();
+                                           updateRound(matches);
                                        })),
                               f.button('.btn', {'style':'width:5em'}, 
                                        'x-y-2', on.click(function(){
                                            match.registerDraw(2);
-                                           updateRound();
+                                           updateRound(matches);
                                        })),
                               f.button('.btn', {'style':'width:5em'}, 
                                        'x-y-3', on.click(function(){
                                            match.registerDraw(3);
-                                           updateRound();
+                                           updateRound(matches);
                                        }))),
                         f.div('.bottomButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
                                 match.registerResult( 0, 2);
-                                updateRound();
+                                updateRound(matches);
                               })),
                               f.button('.btn', '2-1', on.click(function(){
                                 match.registerResult( 1, 2);
-                                updateRound();
+                                updateRound(matches);
                               })),
                               f.button('.btn', '1-0', on.click(function(){
                                 match.registerResult( 0, 1);
-                                updateRound();
+                                updateRound(matches);
                               }))));
          };
        })
