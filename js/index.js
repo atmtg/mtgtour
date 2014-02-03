@@ -151,25 +151,27 @@ define(['foliage',
     return players;
   };
 
+  function reportRoundStatus(matches){
+      var allMatchesFinished = true;
+      _.map(matches, function(match) {
+        allMatchesFinished &= (match.result !== undefined);
+      });
+    roundReportStream.push({roundFinished:allMatchesFinished, 
+                            tournamentResult:undefined,
+                            matches:matches});
+  }
+
   function handleRound(matches) {
     _.each(matches, function(match) {
       if(!match.players[1]) {
         match.registerResult( 2, 0);
       }
     })
-    
-    phloem.each(timer.read().read.next(), function(progress){
-      console.log("timer running: ", timer.running())
-      var allMatchesFinished = true && timer.running();
-      _.map(matches, function(match) {
-        allMatchesFinished &= (match.result !== undefined);
-      })
 
-      roundReportStream.push({roundFinished:allMatchesFinished, 
-                              tournamentResult:undefined,
-                              matches:matches})
-    });
     timer.start();
+    roundReportStream.push({roundFinished:false, 
+                            tournamentResult:undefined,
+                            matches:matches})
   }
 
   function timerDisplay() {
@@ -268,8 +270,8 @@ define(['foliage',
     var tableCount = 1;
 
     return f.div('#matchboard', _.map(matches, function(match) {
-      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream)})
-   )};
+      return matchTable(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream, reportRoundStatus)}));
+  };
 
   function reportResultsAndPairForNextRound(matches, players) {
     _.map(matches, function(match) {

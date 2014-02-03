@@ -13,8 +13,8 @@ define(
 
     var assert = buster.assert;
     var refute = buster.refute;
-    buster.testCase("Pairing module", {
-      'Pairing module can handle two players' : function() {
+    buster.testCase("Pairing module -", {
+      '//can handle two players' : function() {
         var twoPlayers = ['Kalle', 'Pelle'];
         var resultStream = phloem.stream();
 
@@ -24,7 +24,7 @@ define(
           assert.equals(result.value[0].players, ['Kalle', 'Pelle']);
         })
       },
-      'Players are paired across for first round' : function() {
+      '//Players are paired across for first round' : function() {
         var eightPlayers = ['Kalle', 'Pelle', 'Olle', 'Nisse', 'Hasse', 'Lasse', 'Bosse', 'Kurt'];
         var resultStream = phloem.stream();
 
@@ -37,7 +37,7 @@ define(
           assert.equals(result.value[3].players, ['Nisse', 'Kurt']);
         })
       },
-      'Uneven players result in undefined opponent in final match' : function() {
+      '// Uneven players result in undefined opponent in final match' : function() {
         var fivePlayers = ['Kalle', 'Pelle', 'Olle', 'Nisse', 'Hasse'];
         var resultStream = phloem.stream();
 
@@ -50,9 +50,9 @@ define(
         })
       },
       'Player with fewest number of points will sit out next round' : function() {
-        var kalle = {name:'Kalle', results:[winAgainst('Pelle')], dropped:false};
-        var pelle = {name:'Pelle', results:[lossAgainst('Kalle')], dropped:false};
-        var olle = {name:'Olle', results:[bye()], dropped:false};
+        var kalle = {name:'Kalle', pod:1, results:[winAgainst('Pelle')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[lossAgainst('Kalle')], dropped:false};
+        var olle = {name:'Olle', pod:1, results:[bye()], dropped:false};
         var threePlayers = [kalle, pelle, olle];
         var resultStream = phloem.stream();
 
@@ -63,9 +63,9 @@ define(
         })
       },
       'Player with highest number of points will sit out if that player is last to sit out' : function() {
-        var kalle = {name:'Kalle', results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
-        var pelle = {name:'Pelle', results:[lossAgainst('Kalle'), bye()], dropped:false};
-        var olle = {name:'Olle', results:[bye(), lossAgainst('Kalle')], dropped:false};
+        var kalle = {name:'Kalle', pod:1, results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[lossAgainst('Kalle'), bye()], dropped:false};
+        var olle = {name:'Olle', pod:1, results:[bye(), lossAgainst('Kalle')], dropped:false};
         var threePlayers = [kalle, pelle, olle];
         var resultStream = phloem.stream();
 
@@ -76,9 +76,9 @@ define(
         })
       },
       'dropped player is ignored when pairing' : function() {
-        var kalle = {name:'Kalle', results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
-        var pelle = {name:'Pelle', results:[lossAgainst('Kalle'), bye()], dropped:true};
-        var olle = {name:'Olle', results:[bye(), lossAgainst('Kalle')], dropped:false};
+        var kalle = {name:'Kalle', pod:1, results:[winAgainst('Pelle'), winAgainst('Olle')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[lossAgainst('Kalle'), bye()], dropped:true};
+        var olle = {name:'Olle', pod:1, results:[bye(), lossAgainst('Kalle')], dropped:false};
         var threePlayers = [kalle, pelle, olle];
         var resultStream = phloem.stream();
 
