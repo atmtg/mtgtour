@@ -165,11 +165,13 @@ define(['foliage',
         allMatchesFinished &= (match.result !== undefined);
       })
 
-      roundReportStream.push({roundFinished:allMatchesFinished, 
-                              tournamentResult:undefined,
-                              matches:matches})
     });
     timer.start();
+    roundReportStream.push({roundFinished:false, 
+                            tournamentResult:undefined,
+                            matches:matches})
+
+
   }
 
   function timerDisplay() {
