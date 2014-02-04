@@ -37,6 +37,7 @@ define(
         
         phloem.each(reportStream.read, function(val) {
           if(val) {
+            var logtext = $('.matchResult span', tableParent).text().trim();
             assert.equals($('.matchResult span', tableParent).text().trim(), expectedPresentation);
             done();
           }
@@ -65,7 +66,7 @@ define(
       },
       'presents scores when player1 wins and no draws' : resultPresentation({games1: 2, games2: 1}, 'Marshall Wins(2 - 1)'),
       'presents scores when tied game and no draws' : resultPresentation({games1: 1, games2: 1}, 'Draw(1 - 1)'),
-      'presents scores when player2 wins and no draws' : resultPresentation({games1: 1, games2: 2}, 'Brian Wins(1 - 2)'),
+      'presents scores when player2 wins and no draws' : resultPresentation({games1: 1, games2: 2}, 'Brian Wins(2 - 1)'),
       'presents scores and draws when draws' : resultPresentation({games1: 1, games2: 1, draws:1}, 'Draw(1 - 1 - 1)')
     });
     buster.testCase('clicking', {

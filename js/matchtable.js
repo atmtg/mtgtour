@@ -24,8 +24,8 @@ define(['foliage',
            } else {
              reportString = "Draw<br>";
            }
-           reportString += '(' + results.games1 + ' - ' + 
-             results.games2 + 
+           reportString += '(' + (results.games1 > results.games2 ? results.games1 : results.games2) + ' - ' + 
+             (results.games1 > results.games2 ? results.games2 : results.games1) + 
              (results.draws  ? ' - ' + results.draws : '') + ')';
            return reportString;
          };
