@@ -14,39 +14,42 @@ define(
     var assert = buster.assert;
     var refute = buster.refute;
     buster.testCase("Pairing module -", {
-      '//can handle two players' : function() {
-        var twoPlayers = ['Kalle', 'Pelle'];
+      'can handle two players' : function() {
+        var twoPlayers = [{name:'Kalle', pod:1}, {name:'Pelle', pod:1}];
         var resultStream = phloem.stream();
 
         pairing.forFirstRound(twoPlayers, resultStream);
         return when(resultStream.read.next()).then(function(result) {
           assert.equals(result.value.length, 1);
-          assert.equals(result.value[0].players, ['Kalle', 'Pelle']);
+          assert.equals(result.value[0].players, [{name:'Kalle', pod:1}, {name:'Pelle', pod:1}]);
         })
       },
-      '//Players are paired across for first round' : function() {
-        var eightPlayers = ['Kalle', 'Pelle', 'Olle', 'Nisse', 'Hasse', 'Lasse', 'Bosse', 'Kurt'];
+      'Players are paired across for first round' : function() {
+        var eightPlayers = [{name:'Kalle', pod:1}, {name:'Pelle', pod:1}, {name:'Olle', pod:1}, 
+                            {name:'Nisse', pod:1}, {name:'Hasse', pod:1}, {name:'Lasse', pod:1}, 
+                            {name:'Bosse', pod:1}, {name:'Kurt', pod:1}];
         var resultStream = phloem.stream();
 
         pairing.forFirstRound(eightPlayers, resultStream);
         return when(resultStream.read.next()).then(function(result) {
           assert.equals(result.value.length, 4);
-          assert.equals(result.value[0].players, ['Kalle', 'Hasse']);
-          assert.equals(result.value[1].players, ['Pelle', 'Lasse']);
-          assert.equals(result.value[2].players, ['Olle', 'Bosse']);
-          assert.equals(result.value[3].players, ['Nisse', 'Kurt']);
+          assert.equals(result.value[0].players, [{name:'Kalle', pod:1}, {name:'Hasse', pod:1}]);
+          assert.equals(result.value[1].players, [{name:'Pelle', pod:1}, {name:'Lasse', pod:1}]);
+          assert.equals(result.value[2].players, [{name:'Olle', pod:1}, {name:'Bosse', pod:1}]);
+          assert.equals(result.value[3].players, [{name:'Nisse', pod:1}, {name:'Kurt', pod:1}]);
         })
       },
-      '// Uneven players result in undefined opponent in final match' : function() {
-        var fivePlayers = ['Kalle', 'Pelle', 'Olle', 'Nisse', 'Hasse'];
+      'Uneven players result in undefined opponent in final match' : function() {
+        var fivePlayers = [{name:'Kalle', pod:1}, {name:'Pelle', pod:1}, {name:'Olle', pod:1}, 
+                           {name:'Nisse', pod:1}, {name:'Hasse', pod:1}];
         var resultStream = phloem.stream();
 
         pairing.forFirstRound(fivePlayers, resultStream);
         return when(resultStream.read.next()).then(function(result) {
           assert.equals(result.value.length, 3);
-          assert.equals(result.value[0].players, ['Kalle', 'Nisse']);
-          assert.equals(result.value[1].players, ['Pelle', 'Hasse']);
-          assert.equals(result.value[2].players, ['Olle', undefined]);
+          assert.equals(result.value[0].players, [{name:'Kalle', pod:1}, {name:'Nisse', pod:1}]);
+          assert.equals(result.value[1].players, [{name:'Pelle', pod:1}, {name:'Hasse', pod:1}]);
+          assert.equals(result.value[2].players, [{name:'Olle', pod:1}, undefined]);
         })
       },
       'Player with fewest number of points will sit out next round' : function() {
