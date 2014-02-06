@@ -90,5 +90,30 @@ define(
           assert.equals(result.value.length, 1);
           assert.equals(result.value[0].players, [kalle, olle]);
         })
+      },
+      'multiple pods can be paired for first round' : function() {
+        var twoPlayersInTwoPods = [{name:'Kalle', pod:1}, {name:'Pelle', pod:2}];
+        var resultStream = phloem.stream();
+
+        pairing.forFirstRound(twoPlayersInTwoPods, resultStream);
+        return when(resultStream.read.next()).then(function(result) {
+          assert.equals(result.value.length, 2);
+          assert.equals(result.value[0].players, [{name:'Kalle', pod:1}, undefined]);
+          assert.equals(result.value[1].players, [{name:'Pelle', pod:2}, undefined]);
+        })
+      },
+      'multiple pods can be paired for next round' : function() {
+        var kalle = {name:'Kalle', pod:1, results:[winAgainst('Pelle')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[lossAgainst('Kalle')], dropped:false};
+        var olle = {name:'Olle', pod:2, results:[bye()], dropped:false};
+        var threePlayers = [kalle, pelle, olle];
+        var resultStream = phloem.stream();
+
+        pairing.forNextRound(threePlayers, resultStream);
+        return when(resultStream.read.next()).then(function(result) {
+          assert.equals(result.value.length, 2);
+          assert.equals(result.value[0].players, [kalle, pelle]);
+          assert.equals(result.value[1].players, [olle, undefined]);
+        })
       }
     })});
