@@ -11,6 +11,9 @@ define(
     var lossAgainst = function(name) {
       return {wins:0, loss:2, opponent:name};};
 
+    var drawAgainst = function(name) {
+      return {wins:1, loss:1, opponent:name};};
+
     var assert = buster.assert;
     var refute = buster.refute;
     buster.testCase("Pairing module -", {
@@ -114,6 +117,21 @@ define(
           assert.equals(result.value.length, 2);
           assert.equals(result.value[0].players, [kalle, pelle]);
           assert.equals(result.value[1].players, [olle, undefined]);
+        })
+      },
+      'players that have already met, is not paired together again' : function() {
+        var kalle = {name:'Kalle', pod:1, results:[winAgainst('Pelle'), drawAgainst('Olle')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[lossAgainst('Kalle'), drawAgainst('Nisse')], dropped:false};
+        var olle = {name:'Olle', pod:1, results:[winAgainst('Nisse'), drawAgainst('Kalle')], dropped:false};
+        var nisse = {name:'Nisse', pod:1, results:[lossAgainst('Olle'), drawAgainst('Pelle')], dropped:false};
+        var fourPlayers = [kalle, pelle, olle, nisse];
+        var resultStream = phloem.stream();
+
+        pairing.forNextRound(fourPlayers, resultStream);
+        return when(resultStream.read.next()).then(function(result) {
+          assert.equals(result.value.length, 2);
+          assert.equals(result.value[0].players, [kalle, nisse]);
+          assert.equals(result.value[1].players, [olle, pelle]);
         })
       }
     })});
