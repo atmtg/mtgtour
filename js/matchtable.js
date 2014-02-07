@@ -24,8 +24,8 @@ define(['foliage',
            } else {
              reportString = "Draw<br>";
            }
-           reportString += '(' + results.games1 + ' - ' + 
-             results.games2 + 
+           reportString += '(' + (results.games1 > results.games2 ? results.games1 : results.games2) + ' - ' + 
+             (results.games1 > results.games2 ? results.games2 : results.games1) + 
              (results.draws  ? ' - ' + results.draws : '') + ')';
            return reportString;
          };
@@ -64,10 +64,12 @@ define(['foliage',
            };
          }
   
-         return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream) {
+         return function(matchStream, matches, match, roundTimerRunning, tooltip, swapPlayerStream, updateRound) {
            var player1 = match.players[0];
            var player2 = match.players[1];
            var playerClicked;
+
+    
            phloem.each(swapPlayerStream.read.next(), function(player) {
              playerClicked = player;
            });
@@ -103,33 +105,55 @@ define(['foliage',
                               }), f.p('.player2 playerName', opponentName(player2)))),
                         f.div('.topButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
-                                match.registerResult( 2, 0);})),
+                                match.registerResult( 2, 0);
+                                updateRound(matches);
+                              })),
                               f.button('.btn', '2-1', on.click(function(){
-                                match.registerResult( 2, 1);})),
+                                match.registerResult( 2, 1);
+                                updateRound(matches);
+                              })),
                               f.button('.btn', '1-0', on.click(function(){
-                                match.registerResult( 1, 0);}))),
+                                match.registerResult( 1, 0);
+                                updateRound(matches);
+                              }))),
                         f.div('.rightButtonPanel btn-group-vertical', {'style':'display:none'}, 
                               f.button('.btn', {'style':'width:5em'},
                                        '0-0', on.click(function(){
-                                         match.registerResult( 0, 0);})),
+                                           match.registerResult( 0, 0);
+                                           updateRound(matches);
+                                       })),
                               f.button('.btn', {'style':'width:5em'},
                                        '1-1', on.click(function(){
-                                         match.registerResult( 1, 1);})),
+                                           match.registerResult( 1, 1);
+                                           updateRound(matches);
+                                       })),
                               f.button('.btn', {'style':'width:5em'},
                                        'x-y-1', on.click(function(){
-                                         match.registerDraw(1);})),
+                                           match.registerDraw(1);
+                                           updateRound(matches);
+                                       })),
                               f.button('.btn', {'style':'width:5em'}, 
                                        'x-y-2', on.click(function(){
-                                         match.registerDraw(2);})),
+                                           match.registerDraw(2);
+                                           updateRound(matches);
+                                       })),
                               f.button('.btn', {'style':'width:5em'}, 
                                        'x-y-3', on.click(function(){
-                                         match.registerDraw(3);}))),
+                                           match.registerDraw(3);
+                                           updateRound(matches);
+                                       }))),
                         f.div('.bottomButtonPanel', {'style':'display:none'},
                               f.button('.btn', '2-0', on.click(function(){
-                                match.registerResult( 0, 2);})),
+                                match.registerResult( 0, 2);
+                                updateRound(matches);
+                              })),
                               f.button('.btn', '2-1', on.click(function(){
-                                match.registerResult( 1, 2);})),
+                                match.registerResult( 1, 2);
+                                updateRound(matches);
+                              })),
                               f.button('.btn', '1-0', on.click(function(){
-                                match.registerResult( 0, 1);}))));
+                                match.registerResult( 0, 1);
+                                updateRound(matches);
+                              }))));
          };
        })

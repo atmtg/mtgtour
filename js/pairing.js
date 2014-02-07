@@ -30,7 +30,7 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
 
   var matchesPlayed = function(player1, player2) {
     return _.reduce(player2.results, function(acc, result) {
-      if(result.opponent && result.opponent == player1) 
+      if(result.opponent && result.opponent == player1.name) 
         return acc + 1;
       return acc;
     }, 0)
@@ -114,8 +114,7 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
       var indexOfPlayer1 = maxPoints(playersAndPoints);
       var ply1 = playersAndPoints[indexOfPlayer1].thePlayer;
       playersAndPoints.splice(indexOfPlayer1, 1);
-      
-      var leastFrequentOpponentIndexes = leastFrequentOpponents(playersAndPoints, ply1)
+      var leastFrequentOpponentIndexes = leastFrequentOpponents(playersAndPoints, ply1);
       var indexOfPlayer2 = maxPoints(playersAndPoints, leastFrequentOpponentIndexes);
       var ply2 = playersAndPoints[indexOfPlayer2].thePlayer;
       playersAndPoints.splice(indexOfPlayer2, 1);
