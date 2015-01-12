@@ -29,8 +29,8 @@ define(['lodash', 'phloem', 'statistics'], function(_, phloem, stats) {
   };
 
   var matchesPlayed = function(player1, player2) {
-    return _.reduce(player2.results, function(acc, result) {
-      if(result.opponent && result.opponent == player1.name) 
+      return _.reduce(player2.results, function(acc, result) {
+      if(result.opponent && result.opponent().name == player1.name) 
         return acc + 1;
       return acc;
     }, 0)

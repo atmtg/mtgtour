@@ -6,7 +6,7 @@ config["browser tests"] = {
               "modules/foliage/foliage*.js",
               "modules/phloem/phloem.js",
               "modules/blossom/blossom.js",
-              "modules/lodash/lodash.js",
+              "node_modules/lodash/lodash.js",
               "modules/bud/bud.js",
               "modules/when/when.js"
              ],

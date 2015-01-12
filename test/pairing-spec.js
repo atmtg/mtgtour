@@ -3,16 +3,16 @@ define(
   function(pairing, phloem, when) {
 
     var winAgainst = function(name) {
-      return {wins:2, loss:0, opponent:name};};
+	return {wins:2, loss:0, opponent:function(){return {name:name}}};};
 
     var bye = function() {
       return {wins:2, loss:0, opponent:undefined};};
 
     var lossAgainst = function(name) {
-      return {wins:0, loss:2, opponent:name};};
+      return {wins:0, loss:2, opponent:function(){return {name:name}}};};
 
     var drawAgainst = function(name) {
-      return {wins:1, loss:1, opponent:name};};
+	return {wins:1, loss:1, opponent:function(){return {name:name}}};};
 
     var assert = buster.assert;
     var refute = buster.refute;
@@ -132,6 +132,29 @@ define(
           assert.equals(result.value.length, 2);
           assert.isTrue(result.value[0].players[0] ==  kalle || result.value[0].players[0] == olle);
           assert.isTrue(result.value[1].players[1] ==  nisse || result.value[1].players[1] == pelle);
+        })
+      },
+      'when all matches are draw, players should still be paired correctly' : function() {
+	var kalle = {name:'Kalle', pod:1, results:[drawAgainst('Olle'), drawAgainst('Nisse')], dropped:false};
+        var pelle = {name:'Pelle', pod:1, results:[drawAgainst('Nisse'), drawAgainst('Olle')], dropped:false};
+        var olle = {name:'Olle', pod:1, results:[drawAgainst('Kalle'), drawAgainst('Pelle')], dropped:false};
+        var nisse = {name:'Nisse', pod:1, results:[drawAgainst('Pelle'), drawAgainst('Kalle')], dropped:false};
+        var fourPlayers = [kalle, pelle, olle, nisse];
+        var resultStream = phloem.stream();
+
+        pairing.forNextRound(fourPlayers, resultStream);
+        return when(resultStream.read.next()).then(function(result) {
+          assert.equals(result.value.length, 2);
+	    if(result.value[0].players[0] ==  kalle) {
+	      assert.isTrue(result.value[0].players[1] == pelle);
+            } else if(result.value[0].players[0] ==  pelle) {
+	      assert.isTrue(result.value[0].players[1] == kalle);
+            } else if(result.value[0].players[0] ==  olle) {
+	      assert.isTrue(result.value[0].players[1] == nisse);
+            } else {
+	      assert.isTrue(result.value[0].players[0] == nisse);
+	      assert.isTrue(result.value[0].players[1] == olle);
+	    }
         })
       }
     })});
