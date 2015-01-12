@@ -362,7 +362,8 @@ define(['foliage',
                          f.button('.btn', 'Pair for Round One',
                                   on.click(function(){
                                     pair.forFirstRound(players, matchStream);  
-                                  }))))}),
+                                  }))),
+		   f.div('.row', buttonToStartNewTournament()))}),
     f.div('#backdrop'),
     f.div('#version-text', VERSION),  
     b.bind(matchStream.read,
