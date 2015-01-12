@@ -16,7 +16,7 @@ curl({
     },
     packages: {
 	'lodash': {
-	    'location':'../modules/lodash',
+	    'location':'../node_modules/lodash',
 	    'main':'lodash'
 	},
 	'blossom': {

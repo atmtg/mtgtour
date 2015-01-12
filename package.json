@@ -1,18 +1,25 @@
 {
-    "name": "mtgtour",
-    "version": "0.0.1",
-    "description": "Magic app",
-    "author": { "name": "Tobias Anderberg" },
-    "contributors":[{
-        "name": "Joakim Ohlrogge",
-        "url": "https://github.com/johlrogge"
+  "name": "mtgtour",
+  "version": "1.5.0",
+  "description": "Magic app",
+  "author": {
+    "name": "Tobias Anderberg"
+  },
+  "contributors": [
+    {
+      "name": "Joakim Ohlrogge",
+      "url": "https://github.com/johlrogge"
     },
     {
-        "name": "Tobbe Anderberg",
-        "url": "https://github.com/tobbeanderberg"
-    }],
-    "devDependencies": {
-        "buster-amd": "*",
-	"buster": "*"
+      "name": "Tobbe Anderberg",
+      "url": "https://github.com/tobbeanderberg"
     }
+  ],
+  "devDependencies": {
+    "buster-amd": "*",
+    "buster": "*"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1"
+  }
 }
