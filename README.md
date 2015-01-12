@@ -5,6 +5,12 @@ Also handles timing of rounds.
 
 The idea is to have a clean interface that can be visible for everyone during a tournament to give all participants a good overview.
 
+1.5.0
+-----
+	* Fixed the pairing-bug again. Data in tests where not correct, causing tests to pass without code being correct.
+        * Revamped GUI with new background, different table color, and version number on screen
+        * Added 'Start new tournament' button to screen when entering players. Makes it easier to reset if reloading with old tournament.
+
 1.4.0
 -----
         * Fixed further slow dows connected to the timer
