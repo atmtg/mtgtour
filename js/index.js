@@ -20,7 +20,7 @@ define(['foliage',
                 timer,
                 store,
                 when) {
-
+  var VERSION = 'v1.5.0 (2015-01-12)';
   var NUM_ROUNDS = 3;
 
   var matchPoints = stats.matchPoints;
@@ -86,7 +86,7 @@ define(['foliage',
       currentTournament.save('pairings', 
                              _.map(matches, function(match) {
                                return _.map(match.players, function(player) {
-                                 return player && player.name;
+				   return player && player.name;
                                });
                              }));
     });
@@ -364,6 +364,7 @@ define(['foliage',
                                     pair.forFirstRound(players, matchStream);  
                                   }))))}),
     f.div('#backdrop'),
+    f.div('#version-text', VERSION),  
     b.bind(matchStream.read,
            function(matches) {
              var topValue = _.size(matches) > 0 ? 33 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
