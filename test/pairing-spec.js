@@ -6,7 +6,7 @@ define(
 	return {wins:2, loss:0, opponent:function(){return {name:name}}};};
 
     var bye = function() {
-      return {wins:2, loss:0, opponent:undefined};};
+	return {wins:2, loss:0, opponent:function(){return undefined}};};
 
     var lossAgainst = function(name) {
       return {wins:0, loss:2, opponent:function(){return {name:name}}};};
