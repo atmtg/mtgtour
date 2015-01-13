@@ -23,6 +23,10 @@ define(['foliage',
   var VERSION = 'v1.5.0 (2015-01-12)';
   var NUM_ROUNDS = 3;
 
+  var timeAudio = new Audio('../media/time.mp3');
+  var threeMinuteWarning = new Audio('../media/3minutes.mp3');
+  var tenMinuteWarning = new Audio('../media/10minutes.mp3');
+	   
   var matchPoints = stats.matchPoints;
   var matchWinPercentage = stats.matchWinPercentage; 
   var gameWinPercentage = stats.gameWinPercentage;
@@ -111,7 +115,7 @@ define(['foliage',
   function addPlayer(player) {
     playerStoreStream.push(player);
     players = players.concat([player]);
-    playerStream.push(players);
+      playerStream.push(players);
   };
          
   var matchLog = function (results) {
@@ -180,6 +184,9 @@ define(['foliage',
           var minutes = progress.minutesRemaining;
           var seconds = progress.secondsRemaining;
 
+	  if(minutes == 10 && seconds == 0) tenMinuteWarning.play();
+	  if(minutes == 3 && seconds == 0) threeMinuteWarning.play();
+	  if(minutes == 0 && seconds == 0) timeAudio.play();
           return f.div('#roundTimer', 
                        f.span(progress.remaining <= 0 ? 'TIME' : minutes + ':' + seconds, 
                               {'class': progress.remaining <= 0 ? 'timerEnded' : ''}),
