@@ -252,11 +252,11 @@ define(['foliage',
             }));
   };
 
-  function draftTable(players) {
+  function draftTable(players, extraStyle) {
       if(players.length == 0) return f.div();
       var playerIndex = 0;
       
-      return f.div('.draftpod', _.map(players, function(player) {
+      return f.div('.draftpod', extraStyle, _.map(players, function(player) {
 	  return f.div('.seat seat' + seatingPositions[players.length][playerIndex++], player.name);
       }))
   };
@@ -419,8 +419,9 @@ define(['foliage',
     f.div('#drafttables',
 	  b.bind(playerStream.read,
 		 function(currentPlayers) {
-		     return f.div(draftTable(_.filter(currentPlayers, {'pod' : 1})),
-				  draftTable(_.filter(currentPlayers, {'pod' : 2})));
+		     var multiPod = _.find(currentPlayers, {'pod' : 2});
+		     return f.div(draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
+				  draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
 		 })),
     f.div('#players', {'style':'display:none'},
           f.div('#players_header', '.row',
