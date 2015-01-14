@@ -26,6 +26,8 @@ define(['foliage',
   var timeAudio = new Audio('../media/time.mp3');
   var threeMinuteWarning = new Audio('../media/3minutes.mp3');
   var tenMinuteWarning = new Audio('../media/10minutes.mp3');
+
+  var seatingPositions = [[],[2],[2,6],[2,3,6],[2,3,6,7],[1,2,3,6,7],[1,2,3,5,6,7],[1,2,3,4,5,6,7],[1,2,3,4,5,6,7,8]];
 	   
   var matchPoints = stats.matchPoints;
   var matchWinPercentage = stats.matchWinPercentage; 
@@ -250,6 +252,15 @@ define(['foliage',
             }));
   };
 
+  function draftTable(players) {
+      if(players.length == 0) return f.div();
+      var playerIndex = 0;
+      
+      return f.div('.draftpod', _.map(players, function(player) {
+	  return f.div('.seat seat' + seatingPositions[players.length][playerIndex++], player.name);
+      }))
+  };
+	   
   function deleteButton(player) {
     return f.div(f.button('.deleteButton .btn', 
                           'delete', {'style':'display:none'},
@@ -368,7 +379,7 @@ define(['foliage',
                                   })),
                          f.button('.btn', 'Pair for Round One',
                                   on.click(function(){
-				    $('#draftpod').fadeOut();
+				    $('#drafttables').fadeOut();
 				    $('#players').fadeIn();
                                     pair.forFirstRound(players, matchStream);  
                                   }))))}),
@@ -405,7 +416,12 @@ define(['foliage',
             } 
             return f.div();
           }),
-    f.div('#draftpod'),
+    f.div('#drafttables',
+	  b.bind(playerStream.read,
+		 function(currentPlayers) {
+		     return f.div(draftTable(_.filter(currentPlayers, {'pod' : 1})),
+				  draftTable(_.filter(currentPlayers, {'pod' : 2})));
+		 })),
     f.div('#players', {'style':'display:none'},
           f.div('#players_header', '.row',
                 f.span('.span1', ''),
