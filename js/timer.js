@@ -1,5 +1,5 @@
 define(['phloem'],function(p){
-  var defaultRoundTime = 3600;
+  var defaultRoundTime = 3000;
   var total = defaultRoundTime;
   var roundTimerId;
   var timerStream = p.stream();

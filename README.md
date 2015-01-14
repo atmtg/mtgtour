@@ -5,6 +5,15 @@ Also handles timing of rounds.
 
 The idea is to have a clean interface that can be visible for everyone during a tournament to give all participants a good overview.
 
+1.6.0
+-----
+	* Fixed bug with pairing when uneven number of players. Now byes work again.
+	* Reset tournament button now always visible in bottom left.
+	* Audible feedback: Ten minute warning, three minute warning and TIME.
+	* Players are seated at an oval draft table before pairing for first round.
+
+	* KNOWN ISSUE: Adding more players than eight will cause crash!
+
 1.5.0
 -----
 	* Fixed the pairing-bug again. Data in tests where not correct, causing tests to pass without code being correct.
