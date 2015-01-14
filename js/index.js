@@ -219,7 +219,7 @@ define(['foliage',
       f.button('.btn roundButton',
                'Start round',
                on.click(function(){
-                 handleRound(matches);
+		 handleRound(matches);
                  $(this).fadeOut();
                }))) : f.div('#startRoundButton');
   };
@@ -368,9 +368,10 @@ define(['foliage',
                                   })),
                          f.button('.btn', 'Pair for Round One',
                                   on.click(function(){
+				    $('#draftpod').fadeOut();
+				    $('#players').fadeIn();
                                     pair.forFirstRound(players, matchStream);  
-                                  }))),
-		   f.div('.row', buttonToStartNewTournament()))}),
+                                  }))))}),
     f.div('#backdrop'),
     f.div('#version-text', VERSION),  
     b.bind(matchStream.read,
