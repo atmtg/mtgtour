@@ -404,7 +404,8 @@ define(['foliage',
             } 
             return f.div();
           }),
-    f.div('#players',
+    f.div('#draftpod'),
+    f.div('#players', {'style':'display:none'},
           f.div('#players_header', '.row',
                 f.span('.span1', ''),
                 f.span('.span2', 'Player'), 
