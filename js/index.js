@@ -20,7 +20,7 @@ define(['foliage',
                 timer,
                 store,
                 when) {
-  var VERSION = 'v1.5.0 (2015-01-12)';
+  var VERSION = 'v1.6.0 (2015-01-14)';
   var NUM_ROUNDS = 3;
 
   var timeAudio = new Audio('../media/time.mp3');
