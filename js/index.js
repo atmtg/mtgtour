@@ -240,16 +240,18 @@ define(['foliage',
                })) : f.div();
   };
 
+  function resetTournament() {
+      $(this).fadeOut();
+      var newTournamentKey = "Tournament-" + (new Date()).toString();
+      store.save("activeTournament", newTournamentKey);
+      currentTournament = store.subStore(newTournamentKey);
+      document.location.reload();
+  }; 
+	   
   function buttonToStartNewTournament() {
-    return f.button('.btn roundButton',
-            'Start new tournament',
-            on.click(function() {
-              $(this).fadeOut();
-              var newTournamentKey = "Tournament-" + (new Date()).toString();
-              store.save("activeTournament", newTournamentKey);
-              currentTournament = store.subStore(newTournamentKey);
-              document.location.reload();
-            }));
+      return f.button('.btn roundButton',
+		      'Start new tournament',
+		      on.click(resetTournament));
   };
 
   function draftTable(players, extraStyle) {
@@ -384,7 +386,8 @@ define(['foliage',
                                     pair.forFirstRound(players, matchStream);  
                                   }))))}),
     f.div('#backdrop'),
-    f.div('#version-text', VERSION),  
+    f.div('#version-text', VERSION),
+    f.div('#reset', f.button('.btn', 'Reset Tournament', on.click(resetTournament))),  
     b.bind(matchStream.read,
            function(matches) {
              var topValue = _.size(matches) > 0 ? 33 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
