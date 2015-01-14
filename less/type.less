@@ -261,6 +261,10 @@ address {
   margin-left: -26em;
 }
 
+.row {
+  margin-left: 0px;
+}
+
 .deleteButton {
   //color: @blue;
   //border-color: @blue;
@@ -289,12 +293,95 @@ address {
      z-index: -1;
 }
 
+#drafttables {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 100%;
+  height: 17em;
+}
+
+.draftpod {
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  vertical-align: center;
+  height: 17em;
+  background-image:url('img/draftpod.png');
+  background-repeat:no-repeat;
+  background-position: center center;
+  opacity: 0.80;
+  filter: alpha(opacity=80);
+}
+
+.leftpod {
+  left: 0%;
+}
+
+.rightpod {
+  left: 50%;
+}
+
+.seat {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: white;
+  position: absolute;
+}
+
+.seat1 {
+  left: 15%;
+  top: 20%;
+}
+
+.seat2 {
+  left: 35%;
+}
+
+.seat3 {
+  left: 55%;
+}
+
+.seat4 {
+  left: 80%;
+  top: 20%;
+}
+
+.seat5 {
+  left: 80%;
+  top: 80%;
+}
+
+.seat6 {
+  left: 55%;
+  top: 95%;
+}
+
+.seat7 {
+  left: 35%;
+  top: 95%;
+}
+
+.seat8 {
+  left: 15%;
+  top: 80%;
+}
+
 #version-text {
      position: absolute;
      bottom: 5%;
      right: 3%;
      opacity: 0.5;
      filter: alpha(opacity=50);
+}
+
+#reset {
+     position: absolute;
+     bottom: 5%;
+     left: 3%;
+     color: red;
+     opacity: 0.8;
+     filter: alpha(opacity=80);
 } 
 
 #matchboard {

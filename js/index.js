@@ -26,6 +26,8 @@ define(['foliage',
   var timeAudio = new Audio('../media/time.mp3');
   var threeMinuteWarning = new Audio('../media/3minutes.mp3');
   var tenMinuteWarning = new Audio('../media/10minutes.mp3');
+
+  var seatingPositions = [[],[2],[2,6],[2,3,6],[2,3,6,7],[1,2,3,6,7],[1,2,3,5,6,7],[1,2,3,4,5,6,7],[1,2,3,4,5,6,7,8]];
 	   
   var matchPoints = stats.matchPoints;
   var matchWinPercentage = stats.matchWinPercentage; 
@@ -219,7 +221,7 @@ define(['foliage',
       f.button('.btn roundButton',
                'Start round',
                on.click(function(){
-                 handleRound(matches);
+		 handleRound(matches);
                  $(this).fadeOut();
                }))) : f.div('#startRoundButton');
   };
@@ -238,18 +240,29 @@ define(['foliage',
                })) : f.div();
   };
 
+  function resetTournament() {
+      $(this).fadeOut();
+      var newTournamentKey = "Tournament-" + (new Date()).toString();
+      store.save("activeTournament", newTournamentKey);
+      currentTournament = store.subStore(newTournamentKey);
+      document.location.reload();
+  }; 
+	   
   function buttonToStartNewTournament() {
-    return f.button('.btn roundButton',
-            'Start new tournament',
-            on.click(function() {
-              $(this).fadeOut();
-              var newTournamentKey = "Tournament-" + (new Date()).toString();
-              store.save("activeTournament", newTournamentKey);
-              currentTournament = store.subStore(newTournamentKey);
-              document.location.reload();
-            }));
+      return f.button('.btn roundButton',
+		      'Start new tournament',
+		      on.click(resetTournament));
   };
 
+  function draftTable(players, extraStyle) {
+      if(players.length == 0) return f.div();
+      var playerIndex = 0;
+      
+      return f.div('.draftpod', extraStyle, _.map(players, function(player) {
+	  return f.div('.seat seat' + seatingPositions[players.length][playerIndex++], player.name);
+      }))
+  };
+	   
   function deleteButton(player) {
     return f.div(f.button('.deleteButton .btn', 
                           'delete', {'style':'display:none'},
@@ -368,11 +381,13 @@ define(['foliage',
                                   })),
                          f.button('.btn', 'Pair for Round One',
                                   on.click(function(){
+				    $('#drafttables').fadeOut();
+				    $('#players').fadeIn();
                                     pair.forFirstRound(players, matchStream);  
-                                  }))),
-		   f.div('.row', buttonToStartNewTournament()))}),
+                                  }))))}),
     f.div('#backdrop'),
-    f.div('#version-text', VERSION),  
+    f.div('#version-text', VERSION),
+    f.div('#reset', f.button('.btn', 'Reset Tournament', on.click(resetTournament))),  
     b.bind(matchStream.read,
            function(matches) {
              var topValue = _.size(matches) > 0 ? 33 * (Math.ceil(_.size(matches) / 4) - 1) : 0;
@@ -404,7 +419,14 @@ define(['foliage',
             } 
             return f.div();
           }),
-    f.div('#players',
+    f.div('#drafttables',
+	  b.bind(playerStream.read,
+		 function(currentPlayers) {
+		     var multiPod = _.find(currentPlayers, {'pod' : 2});
+		     return f.div(draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
+				  draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
+		 })),
+    f.div('#players', {'style':'display:none'},
           f.div('#players_header', '.row',
                 f.span('.span1', ''),
                 f.span('.span2', 'Player'), 
