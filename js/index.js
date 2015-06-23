@@ -21,8 +21,11 @@ define(['foliage',
                 store,
                 when) {
   var VERSION = 'v1.6.0 (2015-01-14)';
-  var NUM_ROUNDS = 3;
-
+  var DEFAULT_NUM_ROUNDS = 3;
+  var numRoundsStream = phloem.stream();
+  numRoundsStream.push(DEFAULT_NUM_ROUNDS);
+  var numRounds = DEFAULT_NUM_ROUNDS;	   
+	   
   var timeAudio = new Audio('../media/time.mp3');
   var threeMinuteWarning = new Audio('../media/3minutes.mp3');
   var tenMinuteWarning = new Audio('../media/10minutes.mp3');
@@ -119,7 +122,7 @@ define(['foliage',
     players = players.concat([player]);
       playerStream.push(players);
   };
-         
+
   var matchLog = function (results) {
     var matchLogString = '';
     _.each(results, function(result) {
@@ -181,7 +184,6 @@ define(['foliage',
   }
 
   function timerDisplay() {
-      
       return b.bind(timer.read().read.next(), function(progress) {
           var minutes = progress.minutesRemaining;
           var seconds = progress.secondsRemaining;
@@ -198,22 +200,37 @@ define(['foliage',
                                timer.extendBy(60);
                              })),
                              f.button('.btn btn-small', f.i('.icon-minus'), on.click(function() {
-                               timer.decreaseBy(60);
+				 timer.decreaseBy(60);
                              }))),
                        f.div('.progress progress-striped',
                              {'class':progress.remaining < 180 ? 'progress-danger' : 
                               progress.remaining < 600 ? 'progress-warning' : 'progress-success'},
                              f.div('.bar', {'style':'width:' + (progress.remaining/progress.total)*100 + '%' })))
           });
-      
+  }
+
+  function roundDisplay() {
+      return b.bind(numRoundsStream.read, function(rounds) {
+	  return f.div('#roundTitle',
+		       f.span('Round ' + roundNumber + ' / ' + rounds),
+		       f.div('.btn-group-vertical', {'style':'margin-left:0.2em; margin-top:-0.1em'},
+			     f.button('.btn btn-small', f.i('.icon-plus'), on.click(function() {
+				 numRoundsStream.push(rounds + 1);
+			     })),
+			     f.button('.btn btn-small', f.i('.icon-minus'), on.click(function() {
+				 if(rounds > roundNumber) {
+				     numRoundsStream.push(rounds - 1);
+				 }
+			     })))
+			    );});
   }
 
   function roundReportPanel(roundReport) {
-    if(!roundReport || roundReport.tournamentResult) return f.div();
-    f.i = f.element('i');
-    return f.div('#roundPanel', 
-                 f.div('#roundTitle', f.span('Round ' + roundNumber)),
-                 timerDisplay());
+      if(!roundReport || roundReport.tournamentResult) return f.div();
+      f.i = f.element('i');
+      return f.div('#roundPanel', 
+                   roundDisplay(),
+                   timerDisplay());
   }
 
   function buttonToStartRound(matches) {
@@ -227,17 +244,17 @@ define(['foliage',
   };
 
   function buttonToFinishRoundAndPairNext(roundReport) {
-    return roundReport && roundReport.roundFinished ?  
-      f.button('.btn roundButton',
-               roundNumber < NUM_ROUNDS ? 
-               'Finish round and pair for next' : 
-               'Finish round and show results',
-               on.click(function() {
-                 $(this).fadeOut();
-                 timer.stop();
-                 timer.reset();
-                 reportResultsAndPairForNextRound(roundReport.matches, players);
-               })) : f.div();
+      return roundReport && roundReport.roundFinished ?
+	  f.button('.btn roundButton',
+		   roundNumber < numRounds ? 
+		   'Finish round and pair for next' : 
+		   'Finish round and show results',
+		   on.click(function() {
+		       $(this).fadeOut();
+		       timer.stop();
+		       timer.reset();
+		       reportResultsAndPairForNextRound(roundReport.matches, players);
+		   })) : f.div();
   };
 
   function resetTournament() {
@@ -246,6 +263,7 @@ define(['foliage',
       store.save("activeTournament", newTournamentKey);
       currentTournament = store.subStore(newTournamentKey);
       document.location.reload();
+      numRoundsStream.push(DEFAULT_NUM_ROUNDS);
   }; 
 	   
   function buttonToStartNewTournament() {
@@ -322,7 +340,7 @@ define(['foliage',
     players = sortPlayers(players);
     playerStream.push(players);
     
-    if(roundNumber < NUM_ROUNDS) {
+    if(roundNumber < numRounds) {
       roundNumber++;
       pair.forNextRound(players, matchStream);
     } else {
@@ -409,8 +427,13 @@ define(['foliage',
           }),
     b.bind(roundReportStream.read,
           function(roundReport) {
-            return buttonToFinishRoundAndPairNext(roundReport);
+	      return buttonToFinishRoundAndPairNext(roundReport);
           }),
+    b.bind(numRoundsStream.read,
+	  function(newNumRounds) {
+	      numRounds = newNumRounds;
+	      return f.div();
+	  }),
     b.bind(roundReportStream.read,
           function(roundReport) {
             if(roundReport && roundReport.tournamentResult) {
@@ -423,10 +446,11 @@ define(['foliage',
 	  b.bind(playerStream.read,
 		 function(currentPlayers) {
 		     var multiPod = _.find(currentPlayers, {'pod' : 2});
-		     return f.div(draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
-				  draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
+		     return f.div({'style':'display:' + (roundNumber == 1 ? 'true' : 'none')},
+			 draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
+			 draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
 		 })),
-    f.div('#players', {'style':'display:none'},
+      f.div('#players', {'style':'display:' + (roundNumber > 1 ? 'true' : 'none')},
           f.div('#players_header', '.row',
                 f.span('.span1', ''),
                 f.span('.span2', 'Player'), 
