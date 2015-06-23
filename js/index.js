@@ -20,7 +20,7 @@ define(['foliage',
                 timer,
                 store,
                 when) {
-  var VERSION = 'v1.6.0 (2015-01-14)';
+  var VERSION = 'v1.7.0 (2015-06-23)';
   var DEFAULT_NUM_ROUNDS = 3;
   var numRoundsStream = phloem.stream();
   numRoundsStream.push(DEFAULT_NUM_ROUNDS);
