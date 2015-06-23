@@ -5,6 +5,11 @@ Also handles timing of rounds.
 
 The idea is to have a clean interface that can be visible for everyone during a tournament to give all participants a good overview.
 
+1.7.0
+----
+	* Added possibility to play different number of rounds than three. The number can be changed with buttons after pairing for first round.
+	* Workaround for the known issue below. When more than eight players are entered the old player listing will appear instead of the oval table. 
+
 1.6.0
 -----
 	* Fixed bug with pairing when uneven number of players. Now byes work again.
