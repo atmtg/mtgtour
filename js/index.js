@@ -442,64 +442,64 @@ define(['foliage',
             } 
             return f.div();
           }),
-    f.div('#drafttables',
-	  b.bind(playerStream.read,
-		 function(currentPlayers) {
-		     var multiPod = _.find(currentPlayers, {'pod' : 2});
+      f.div('#drafttables',
+	    b.bind(playerStream.read,
+		   function(currentPlayers) {
+		       var multiPod = _.find(currentPlayers, {'pod' : 2});
 		     return f.div({'style':'display:' + (roundNumber == 1 ? 'true' : 'none')},
-			 draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
-			 draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
-		 })),
-      f.div('#players', {'style':'display:' + (roundNumber > 1 ? 'true' : 'none')},
-          f.div('#players_header', '.row',
-                f.span('.span1', ''),
-                f.span('.span2', 'Player'), 
-                f.span('.span1', 'Points'),
-                f.span('.span1', 'OMP',
-                       tooltip('Average Match Win Percentage of Played Opponents')),
-                f.span('.span1', 'GWP',
-                       tooltip('Players Game Win Percentage')),
-                f.span('.span1', 'OGP',
-                       tooltip('Average Game Win Percentage of Played Opponents')),
-                f.span('.span5', 'Match Log')),
-          b.bind(playerStream.read,
-                 function(currentPlayers) {
-                   return f.div(_.map(currentPlayers, function(player) {
-                     return f.div('.row',
-                                  player.dropped ? '.dropped' : undefined,
-                                  player.pod ? player.pod == 1 ? '.pod1' : '.pod2' : undefined,
-                                  on.hover(function() {
-                                    $(this).toggleClass('emphasized');
-                                    if(!player.dropped)
-                                      $(this).find('.deleteButton').toggle();
-                                  }),
-                                  f.span('.span1',
-                                         b.bind(matchStream.read.next(), function(matches) {
-                                           return matches.length > 0 ? dropButton(player) : deleteButton(player);
-                                         })),
-                                  f.span('.span2', player.name), 
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(matchPoints(results));
-                                                }), {'class':'span1'}),
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(
-                                                    opponentsMatchWinPercentage(results));
-                                                }), {'class':'span1'}),
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(gameWinPercentage(results));
-                                                }), {'class':'span1'}),
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(
-                                                    opponentsGameWinPercentage(results));
-                                                }), {'class':'span1'}),
-                                  f.span(b.bind(player.resultStream.read,
-                                                function(results){
-                                                  return f.span(
-                                                    matchLog(results));
-                                                }), {'class':'span5 matchLog'})
-                                 )}))})
-         ))})
+				  draftTable(_.filter(currentPlayers, {'pod' : 1}), multiPod ? '.leftpod' : ''),
+				  draftTable(_.filter(currentPlayers, {'pod' : 2}), multiPod ? '.rightpod' : ''));
+		   })),
+      b.bind(playerStream.read, function(currentPlayers) {
+	  if(!currentPlayers || currentPlayers == 0) return f.div();
+	  return f.div('#players', {'style':'display:' + (roundNumber > 1 || currentPlayers.length > 8 ? 'true' : 'none')},
+		       f.div('#players_header', '.row',
+			     f.span('.span1', ''),
+			     f.span('.span2', 'Player'), 
+			     f.span('.span1', 'Points'),
+			     f.span('.span1', 'OMP',
+				    tooltip('Average Match Win Percentage of Played Opponents')),
+			     f.span('.span1', 'GWP',
+				    tooltip('Players Game Win Percentage')),
+			     f.span('.span1', 'OGP',
+				    tooltip('Average Game Win Percentage of Played Opponents')),
+			     f.span('.span5', 'Match Log')),
+		       f.div(_.map(currentPlayers, function(player) {
+			   return f.div('.row',
+					player.dropped ? '.dropped' : undefined,
+					player.pod ? player.pod == 1 ? '.pod1' : '.pod2' : undefined,
+					on.hover(function() {
+					    $(this).toggleClass('emphasized');
+					    if(!player.dropped)
+						$(this).find('.deleteButton').toggle();
+					}),
+					f.span('.span1',
+                                               b.bind(matchStream.read.next(), function(matches) {
+						   return matches.length > 0 ? dropButton(player) : deleteButton(player);
+                                               })),
+					f.span('.span2', player.name), 
+					f.span(b.bind(player.resultStream.read,
+                                                      function(results){
+							  return f.span(matchPoints(results));
+                                                      }), {'class':'span1'}),
+					f.span(b.bind(player.resultStream.read,
+                                                      function(results){
+							  return f.span(
+							      opponentsMatchWinPercentage(results));
+                                                      }), {'class':'span1'}),
+					f.span(b.bind(player.resultStream.read,
+                                                      function(results){
+							  return f.span(gameWinPercentage(results));
+                                                      }), {'class':'span1'}),
+					f.span(b.bind(player.resultStream.read,
+                                                      function(results){
+							  return f.span(
+							      opponentsGameWinPercentage(results));
+                                                      }), {'class':'span1'}),
+					f.span(b.bind(player.resultStream.read,
+                                                      function(results){
+							  return f.span(
+							      matchLog(results));
+                                                      }), {'class':'span5 matchLog'})
+                                       )})))})
+  )})
